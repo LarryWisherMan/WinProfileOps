@@ -120,6 +120,32 @@
                     ]
                 }
             ]
+        },
+
+        {
+            "label": "CreateTestScript",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/_WorkSpaceTasks/create-test-script.ps1",
+                "-CurrentFile",
+                "${file}",
+                "-WorkspaceFolder",
+                "${workspaceFolder}"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            },
+            "problemMatcher": []
         }
+
+
     ]
 }

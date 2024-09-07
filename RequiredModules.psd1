@@ -19,7 +19,7 @@
     ChangelogManagement         = 'latest'
     Sampler                     = 'latest'
     'Sampler.GitHubTasks'       = 'latest'
+    'WisherTools.Helpers'       = 'latest'
 
 
 }
-
