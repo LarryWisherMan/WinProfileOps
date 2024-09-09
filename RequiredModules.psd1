@@ -12,14 +12,21 @@
     #    }
     #}
 
-    InvokeBuild                 = 'latest'
-    PSScriptAnalyzer            = 'latest'
-    Pester                      = 'latest'
-    ModuleBuilder               = 'latest'
-    ChangelogManagement         = 'latest'
-    Sampler                     = 'latest'
-    'Sampler.GitHubTasks'       = 'latest'
-    'WisherTools.Helpers'       = 'latest'
+    InvokeBuild           = 'latest'
+    PSScriptAnalyzer      = 'latest'
+    Pester                = 'latest'
+    ModuleBuilder         = 'latest'
+    ChangelogManagement   = 'latest'
+    Sampler               = 'latest'
+    'Sampler.GitHubTasks' = 'latest'
+    #'WisherTools.Helpers' = 'latest'
+    'WinRegOps'           = @{
+        Version    = '0.3.0-preview0003'
+        Parameters = @{
+            AllowPrerelease = $true
+            Repository      = "PSGallery"
+        }
+    }
 
 
 }
