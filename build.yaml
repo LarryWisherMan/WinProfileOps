@@ -28,11 +28,6 @@ VersionedOutputDirectory: true
 ####################################################
 
 NestedModule:
-  #WisherTools.Helpers: # This is the first submodule to build into the output
-  #CopyOnly: true
-  #Path: ./output/RequiredModules/WisherTools.Helpers
-  #AddToManifest: True
-
   WinRegOps: # This is the first submodule to build into the output
     CopyOnly: true
     Path: ./output/RequiredModules/WinRegOps
@@ -96,6 +91,7 @@ Pester:
   OutputFormat: NUnitXML
   # Excludes one or more paths from being used to calculate code coverage.
   ExcludeFromCodeCoverage:
+    - Modules/WinRegOps
 
   # If no scripts are defined the default is to use all the tests under the project's
   # tests folder or source folder (if present). Test script paths can be defined to

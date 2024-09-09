@@ -8,3 +8,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added core functions
+- configured `WinRegOps` as a dependant module
+- Updated build file for release
