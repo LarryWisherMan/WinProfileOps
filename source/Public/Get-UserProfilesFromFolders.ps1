@@ -1,6 +1,7 @@
-function Get-UserProfilesFromFolders {
+function Get-UserProfilesFromFolders
+{
     param (
-        [string]$ComputerName,
+        [string]$ComputerName = $env:COMPUTERNAME,
         [string]$ProfileFolderPath = "C:\Users"
     )
 

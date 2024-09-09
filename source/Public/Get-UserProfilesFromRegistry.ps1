@@ -1,6 +1,7 @@
-function Get-UserProfilesFromRegistry {
+function Get-UserProfilesFromRegistry
+{
     param (
-        [string]$ComputerName
+        [string] $ComputerName = $env:COMPUTERNAME
     )
 
     # Get registry profiles and return them

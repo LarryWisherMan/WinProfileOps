@@ -12,14 +12,15 @@
     #    }
     #}
 
-    InvokeBuild                 = 'latest'
-    PSScriptAnalyzer            = 'latest'
-    Pester                      = 'latest'
-    ModuleBuilder               = 'latest'
-    ChangelogManagement         = 'latest'
-    Sampler                     = 'latest'
-    'Sampler.GitHubTasks'       = 'latest'
-    'WisherTools.Helpers'       = 'latest'
+    InvokeBuild           = 'latest'
+    PSScriptAnalyzer      = 'latest'
+    Pester                = 'latest'
+    ModuleBuilder         = 'latest'
+    ChangelogManagement   = 'latest'
+    Sampler               = 'latest'
+    'Sampler.GitHubTasks' = 'latest'
+    'WisherTools.Helpers' = 'latest'
+    WinRegOps             = '0.2.0'
 
 
 }
