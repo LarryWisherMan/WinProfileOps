@@ -117,16 +117,32 @@ Typical use cases include:
 
             Prerelease   = ''
             # Tags applied to this module. These help with module discovery in online galleries.
-            # Tags = @()
+            Tags         = @(
+                'WindowsProfiles',
+                'ProfileManagement',
+                'OrphanedProfiles',
+                'RegistryOperations',
+                'FilesystemOperations',
+                'RemoteManagement',
+                'UserProfiles',
+                'ProfileCleanup',
+                'WindowsRegistry',
+                'SystemAdministration',
+                'Automation',
+                'ProfileValidation',
+                'WindowsManagement',
+                'ITAdministration',
+                'UserProfileTools'
+            )
 
             # A URL to the license for this module.
-            # LicenseUri = ''
+            LicenseUri   = 'https://github.com/LarryWisherMan/WinProfileOps/blob/main/LICENSE'
 
             # A URL to the main website for this project.
-            # ProjectUri = ''
+            ProjectUri   = 'https://github.com/LarryWisherMan/WinProfileOps'
 
             # A URL to an icon representing this module.
-            # IconUri = ''
+            IconUri      = 'https://raw.githubusercontent.com/LarryWisherMan/ModuleIcons/main/WinProfileOps.png'
 
             # ReleaseNotes of this module
             ReleaseNotes = ''
