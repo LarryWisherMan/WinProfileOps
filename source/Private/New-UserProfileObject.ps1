@@ -24,6 +24,7 @@
 
 function New-UserProfileObject
 {
+    [outputType([UserProfile])]
     param (
         [string]$SID,
         [string]$ProfilePath,
