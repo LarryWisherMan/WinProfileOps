@@ -33,13 +33,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Implemented and completed Unit Tests for private functions
 
+- **`Get-UserFolders`**
+  - Added error handling using a `try`/`catch` block to ensure that if `Get-ChildItem`
+   fails (e.g., due to permission issues), the function logs an error message and
+   returns an empty array instead of throwing an unhandled exception.
+
+  - Implemented an `OutputType` attribute for better PowerShell function introspection
+   and to clearly indicate that the function returns an array of `[PSCustomObject]`.
+
 ### Changed
 
 - Moved `Get-SIDProfileInfo` to the private functions folder. It will serve as
 an internal function for `Get-RegistryUserProfiles`
 
-- Updates to `Get-SIDProfileInfo`:
-  
+- **`Get-SIDProfileInfo`**
   - Returns an empty array `@()` when no registry
   key or SIDs are found, improving handling for cases where there are no profiles.
 
@@ -51,3 +58,19 @@ an internal function for `Get-RegistryUserProfiles`
 
   - Optimized function behavior to handle scenarios with no SIDs, invalid SID formats,
   and missing `ProfileImagePath` values gracefully.
+
+
+- **`Get-UserFolders`**
+  - The function now logs errors when folder retrieval fails, improving diagnostic
+   feedback.
+
+  - The default value for the `ComputerName` parameter is set to `$env:COMPUTERNAME`,
+   ensuring local computer behavior by default without requiring the user to
+   specify it manually.
+  
+  - Refined the `Get-DirectoryPath` call to ensure path conversion consistency
+   across local and remote environments.
+
+  - General code clean-up and improved resilience, returning an empty array when
+   no folders are found or in case of failure, rather than proceeding 
+   without valid data.
