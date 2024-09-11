@@ -19,7 +19,7 @@
 
 function Remove-RegistryKeyForSID
 {
-    #Deletes a single registry key for a SID.
+    # Deletes a single registry key for a SID.
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param (
         [Parameter(Mandatory = $true)]
@@ -34,8 +34,17 @@ function Remove-RegistryKeyForSID
 
     try
     {
-        # Use the general Remove-RegistrySubKey function to delete the SID's subkey
-        return Remove-RegistrySubKey -ParentKey $ProfileListKey -SubKeyName $SID -ComputerName $ComputerName
+        # Check if ShouldProcess is approved (with -WhatIf and -Confirm support)
+        if ($PSCmdlet.ShouldProcess("SID: $SID on $ComputerName", "Remove registry key"))
+        {
+            # Use the general Remove-RegistrySubKey function to delete the SID's subkey
+            return Remove-RegistrySubKey -ParentKey $ProfileListKey -SubKeyName $SID -ComputerName $ComputerName -Confirm:$false
+        }
+        else
+        {
+            Write-Verbose "Removal of registry key for SID '$SID' was skipped."
+            return $false
+        }
     }
     catch
     {
