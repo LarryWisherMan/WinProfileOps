@@ -28,7 +28,7 @@ function New-UserProfileObject
         [string]$SID,
         [string]$ProfilePath,
         [bool]$IsOrphaned,
-        [string]$OrphanReason,
+        [string]$OrphanReason = $null,
         [string]$ComputerName,
         [bool]$IsSpecial
     )

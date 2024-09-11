@@ -33,7 +33,7 @@ function Test-OrphanedProfile
 
     if (-not $ProfilePath)
     {
-        return New-UserProfileObject $SID "(null)" $true "MissingProfileImagePath" $ComputerName $IsSpecial
+        return New-UserProfileObject $SID $null $true "MissingProfileImagePath" $ComputerName $IsSpecial
     }
     elseif (-not $FolderExists)
     {
