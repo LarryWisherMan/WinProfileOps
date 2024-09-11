@@ -30,3 +30,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Test-FolderExists`
 - `Test-OrphanedProfile`
 - `Test-SpecialAccount`
+
+- Implemented and completed Unit Tests for private functions

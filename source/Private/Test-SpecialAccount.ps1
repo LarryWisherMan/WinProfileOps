@@ -1,19 +1,24 @@
 <#
 .SYNOPSIS
-    Tests if a profile is a special account.
+    Tests if a profile is considered a special or default account.
 .DESCRIPTION
-    The Test-SpecialAccount function checks whether the profile is a special or default account by evaluating the folder name, SID, and profile path against a predefined list of ignored accounts, SIDs, and paths.
-.PARAM FolderName
-    The folder name of the profile being tested.
-.PARAM SID
+    The Test-SpecialAccount function checks whether the profile is a special or default account by comparing the folder name, Security Identifier (SID), and profile path to predefined lists of ignored accounts, SIDs, and paths.
+    If the profile matches any of the predefined entries, it is considered a special account.
+.PARAMETER FolderName
+    The name of the folder representing the profile being tested.
+.PARAMETER SID
     The Security Identifier (SID) of the profile being tested.
-.PARAM ProfilePath
-    The file path of the profile folder.
+.PARAMETER ProfilePath
+    The file path of the profile being tested.
 .EXAMPLE
     Test-SpecialAccount -FolderName "DefaultAppPool" -SID "S-1-5-18" -ProfilePath "C:\WINDOWS\system32\config\systemprofile"
-    Checks if the profile associated with "DefaultAppPool" is a special account.
+    Checks if the profile associated with the folder "DefaultAppPool", SID "S-1-5-18", and profile path "C:\WINDOWS\system32\config\systemprofile" is a special account.
+.EXAMPLE
+    Test-SpecialAccount -FolderName "JohnDoe" -SID "S-1-5-21-123456789-1001" -ProfilePath "C:\Users\JohnDoe"
+    Tests a non-special account, which does not match any predefined special accounts.
+.NOTES
+    This function returns $true if the account is considered special, and $false otherwise.
 #>
-
 function Test-SpecialAccount
 {
     param (
