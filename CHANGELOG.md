@@ -74,3 +74,19 @@ an internal function for `Get-RegistryUserProfiles`
   - General code clean-up and improved resilience, returning an empty array when
    no folders are found or in case of failure, rather than proceeding 
    without valid data.
+
+- **`Get-UserProfilesFromRegistry`**
+  - Added error handling using a `try-catch` block to capture and log errors
+   during the retrieval of registry profiles.
+   
+  - Implemented a check using `Test-ComputerPing` to verify if the target computer
+   is online or reachable before attempting to retrieve registry profiles.
+
+  - Returns an empty array `@()` when the target computer is offline or unreachable,
+   logging a warning in such cases.
+
+  - Returns an empty array `@()` when an error occurs while accessing the registry
+   profiles, logging an error message.
+
+  - Integrated with the `-ErrorAction Stop` parameter when calling `Get-SIDProfileInfo`,
+   ensuring that errors are caught and handled appropriately in the calling function.
