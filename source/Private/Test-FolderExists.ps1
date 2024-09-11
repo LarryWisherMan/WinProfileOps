@@ -33,6 +33,7 @@
 function Test-FolderExists
 {
     [outputType([bool])]
+    [cmdletbinding()]
     param (
         [string]$ProfilePath,
         [string]$ComputerName = $env:COMPUTERNAME

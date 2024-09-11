@@ -198,7 +198,7 @@ Describe "Test-FolderExists" -Tag "Private" {
                 $computerName = $env:COMPUTERNAME
 
                 # Act and Assert
-                $result = Test-FolderExists -ProfilePath $profilePath -ComputerName $computerName
+                $result = Test-FolderExists -ProfilePath $profilePath -ComputerName $computerName -ErrorAction Continue
                 $result | Should -BeFalse
 
                 Assert-MockCalled Get-DirectoryPath -Exactly 1
@@ -214,7 +214,7 @@ Describe "Test-FolderExists" -Tag "Private" {
                 $computerName = $env:COMPUTERNAME
 
                 # Act and Assert
-                $result = Test-FolderExists -ProfilePath $profilePath -ComputerName $computerName
+                $result = Test-FolderExists -ProfilePath $profilePath -ComputerName $computerName -ErrorAction Continue
                 $result | Should -BeFalse
 
                 Assert-MockCalled Get-DirectoryPath -Exactly 1
