@@ -10,3 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added core functions
 - configured `WinRegOps` as a dependant module
 - Updated build file for release
+
+- Comment-based help documentation added for the following public functions:
+  - `Get-AllUserProfiles`
+  - `Get-OrphanedProfiles`
+  - `Remove-OrphanedProfiles`
+  - `Remove-SIDProfile`
+  - `Get-UserProfileFolders`
+  - `Get-RegistryUserProfiles`
+  - `Get-UserFolders`
+  - `Get-SIDProfileInfo`
+
+- Comment-based help documentation added for the following public functions:
+- `New-UserProfileObject`
+- `Remove-RegistryKeyForSID`
+- `Remove-ProfilesForSIDs`
+- `Get-RegistryKeyForSID`
+- `Get-ProfilePathFromSID`
+- `Test-FolderExists`
+- `Test-OrphanedProfile`
+- `Test-SpecialAccount`
