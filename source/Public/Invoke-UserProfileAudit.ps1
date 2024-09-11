@@ -43,6 +43,7 @@
     This function performs a profile audit by comparing user profiles in the file system and registry.
     It supports pipeline input for multiple computer names and includes an alias `Get-AllUserProfiles`.
 #>
+
 function Invoke-UserProfileAudit
 {
     [OutputType([UserProfile[]])]
@@ -68,11 +69,18 @@ function Invoke-UserProfileAudit
             return
         }
 
-        $UserFolders = Get-UserProfilesFromFolders -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath
-        $RegistryProfiles = Get-UserProfilesFromRegistry -ComputerName $ComputerName
+        try
+        {
+            $UserFolders = Get-UserProfilesFromFolders -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath
+            $RegistryProfiles = Get-UserProfilesFromRegistry -ComputerName $ComputerName
 
-        $AllProfiles += Process-RegistryProfiles -RegistryProfiles $RegistryProfiles -ComputerName $ComputerName -IgnoreSpecial:$IgnoreSpecial
-        $AllProfiles += Process-FolderProfiles -UserFolders $UserFolders -RegistryProfiles $RegistryProfiles -ComputerName $ComputerName -IgnoreSpecial:$IgnoreSpecial
+            $AllProfiles += Process-RegistryProfiles -RegistryProfiles $RegistryProfiles -ComputerName $ComputerName -IgnoreSpecial:$IgnoreSpecial
+            $AllProfiles += Process-FolderProfiles -UserFolders $UserFolders -RegistryProfiles $RegistryProfiles -ComputerName $ComputerName -IgnoreSpecial:$IgnoreSpecial
+        }
+        catch
+        {
+            Write-Error "Error processing profiles for computer '$ComputerName'. Error: $_"
+        }
     }
 
     end

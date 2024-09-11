@@ -27,8 +27,14 @@ function Test-ComputerReachability
 {
     [OutputType ([bool])]
     param (
-        [string]$ComputerName
+        [string]$ComputerName = $env:COMPUTERNAME
     )
+
+    if ($ComputerName -eq $null)
+    {
+        Write-Warning "No computer name provided."
+        return $false
+    }
 
     if (-not (Test-ComputerPing -ComputerName $ComputerName))
     {
