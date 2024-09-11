@@ -41,6 +41,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented an `OutputType` attribute for better PowerShell function introspection
    and to clearly indicate that the function returns an array of `[PSCustomObject]`.
 
+- **`Invoke-UserProfileAudit` Supporting Functions:**
+
+  - These supporting functions are now utilized within `Invoke-UserProfileAudit`
+   to audit user profiles from both the file system and registry sources.
+
+    - **`Process-RegistryProfiles`**: 
+      - Processes profiles retrieved from the registry,
+    compares them with folder profiles, and identifies orphaned profiles.
+
+    - **`Process-FolderProfiles`**:
+      - Processes user profiles from the folder system,
+     identifies those without corresponding registry entries, and marks them as orphaned.
+
+    - **`Test-ComputerReachability`**:
+      - Encapsulates the common behavior of `Test-ComputerPing` to check if a computer
+      is reachable before proceeding with operations like profile audits. This ensures
+       consistent handling of unreachable computers across different functions.
+  
 ### Changed
 
 - Moved `Get-SIDProfileInfo` to the private functions folder. It will serve as
@@ -72,7 +90,7 @@ an internal function for `Get-RegistryUserProfiles`
    across local and remote environments.
 
   - General code clean-up and improved resilience, returning an empty array when
-   no folders are found or in case of failure, rather than proceeding 
+   no folders are found or in case of failure, rather than proceeding
    without valid data.
 
 - **`Get-UserProfilesFromRegistry`**
@@ -103,3 +121,14 @@ an internal function for `Get-RegistryUserProfiles`
 
   - Returns an empty array `@()` when an error occurs while accessing the user
    folders, logging an error message.
+
+
+- **`Invoke-UserProfileAudit`**
+  - Renamed the previous `Get-AllUserProfiles` function to `Invoke-UserProfileAudit`.
+  - Added `Get-AllUserProfiles` as an alias for `Invoke-UserProfileAudit`
+  to maintain backward compatibility.
+
+### Removed
+
+- Removed the old `Get-AllUserProfiles` function and replaced it with the new
+`Invoke-UserProfileAudit` function.
