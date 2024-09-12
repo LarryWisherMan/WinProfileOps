@@ -30,28 +30,31 @@
     Copyright            = '(c) 2024 LarryWisherMan. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description          = 'The WinProfileOps module provides an essential toolkit for managing Windows user profiles across local and remote computers. This module automates complex profile management tasks such as detecting orphaned profiles, validating profile paths, and removing stale or corrupted profiles. It handles both filesystem and registry operations, leveraging its dependency on WinRegOps for registry-related functions.
+    Description          = 'The WinProfileOps module provides a comprehensive toolkit for managing Windows user profiles across local and remote computers. This module automates profile management tasks such as detecting orphaned profiles, retrieving profile information, and auditing discrepancies between profile data in the file system and the registry. It handles both filesystem and registry operations, leveraging its dependency on WinRegOps for registry-related tasks.
 
-WinProfileOps integrates with WinRegOps to seamlessly manage profiles by querying, validating, and deleting user profile-related data from the Windows registry. This module is ideal for system administrators seeking to streamline profile management operations, especially in environments with numerous users and computers.
+WinProfileOps integrates seamlessly with WinRegOps to query, validate, and manage user profile-related data from the Windows registry. This module is ideal for system administrators seeking to streamline profile management, especially in environments with many users and computers.
 
 Dependencies:
-- WinRegOps: The WinProfileOps module depends on WinRegOps for registry operations such as querying, opening, and modifying registry keys related to user profiles.
+- WinRegOps: WinProfileOps depends on WinRegOps for registry operations, such as querying, opening, and modifying registry keys related to user profiles.
 
 Key features:
 - Retrieve user profile information from both the registry and file system (local and remote).
 - Detect orphaned profiles (e.g., missing profile folders or registry entries).
-- Remove orphaned or unused profiles from the system.
 - Filter and exclude special accounts like system or service accounts.
-- Built-in support for remote profile management.
-- Error handling for permission issues or unreachable systems.
-- Class-based profile objects for easy integration with other automation tasks.
+- Remote profile management support for retrieving profiles from different systems.
+- Robust error handling for permission issues or unreachable systems.
+- Class-based profile objects for easy integration with automation tasks or scripts.
 
 Typical use cases include:
-- Cleaning up orphaned user profiles after system migrations or user deactivations.
-- Automating the detection and removal of stale profiles on local and remote systems.
-- Managing user profiles in large-scale, multi-user environments (e.g., terminal servers, Citrix environments).
-- Excluding system accounts from profile cleanup operations, ensuring important profiles remain intact.
-- Providing profile management capabilities as part of system maintenance routines.'
+- Cleaning up orphaned profiles after system migrations or user deactivations.
+- Automating stale profile detection on local and remote systems to maintain system performance.
+- Managing user profiles in large-scale, multi-user environments such as terminal servers and Citrix.
+- Excluding critical system accounts from profile management tasks, ensuring important profiles remain unaffected.
+- Providing profile management as part of system maintenance routines to enhance system health.
+
+Upcoming Features:
+- The `Remove-UserProfile` function is coming soon, offering safe removal of user profiles from both the file system and registry, with strong safeguards like `ShouldProcess`, `-WhatIf`, and `-Confirm` to prevent accidental deletions.
+'
 
     # Minimum version of the Windows PowerShell engine required by this module
     PowerShellVersion    = '5.1'

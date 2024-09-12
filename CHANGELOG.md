@@ -132,3 +132,7 @@ an internal function for `Get-RegistryUserProfiles`
 
 - Removed the old `Get-AllUserProfiles` function and replaced it with the new
 `Invoke-UserProfileAudit` function.
+
+- Temporarily Removed functions (`Remove-OrphanedProfiles` and
+ `Remove-ProfilesForSIDs`) related to Removing Users Folders and registry
+keys for further testing before implementing
