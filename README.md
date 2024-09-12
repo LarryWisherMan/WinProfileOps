@@ -1,20 +1,19 @@
-
 # WinProfileOps
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LarryWisherMan/ModuleIcons/main/WinProfileOps.png" 
+  <img src="https://raw.githubusercontent.com/LarryWisherMan/ModuleIcons/main/WinProfileOps.png"
        alt="WinProfileOps Icon" width="400" />
 </p>
 
 The **WinProfileOps** module provides a robust toolkit for managing Windows user
 profiles on both local and remote computers. This module simplifies and automates
 complex profile management tasks, such as detecting orphaned profiles, validating
-profile paths, and removing stale or corrupted profiles. It handles both filesystem
+profile paths, and identifying stale or corrupted profiles. It handles both filesystem
 and registry operations, utilizing the **WinRegOps** module for registry-related
 functions.
 
 **WinProfileOps** seamlessly integrates with **WinRegOps** to manage profiles by
-querying, validating, and deleting user profile-related data from the Windows
+querying, validating, and auditing user profile-related data from the Windows
 registry. This module is ideal for system administrators who want to streamline
 profile management operations, especially in environments with numerous users and
 computers.
@@ -24,7 +23,7 @@ computers.
 ## Dependencies
 
 - **WinRegOps**: The **WinProfileOps** module depends on
-[**WinRegOps**](https://github.com/LarryWisherMan/WinRegOps) for registry
+  [**WinRegOps**](https://github.com/LarryWisherMan/WinRegOps) for registry
   operations such as querying, opening, and modifying registry keys related to user
   profiles.
 
@@ -36,7 +35,6 @@ computers.
   (local and remote).
 - **Detect orphaned profiles**, such as profiles missing from the file system or
   registry.
-- **Remove orphaned or unused profiles** from the system safely.
 - **Filter and exclude special accounts** like system or service accounts (e.g.,
   `defaultuser0`, `S-1-5-18`).
 - **Remote profile management** with support for handling user profiles across
@@ -51,8 +49,6 @@ computers.
 
 - **Cleaning up orphaned profiles** after system migrations, user deactivations, or
   profile corruption.
-- **Automating stale profile removal** on both local and remote systems to save disk
-  space and improve performance.
 - **Managing user profiles in large-scale environments**, such as terminal servers,
   Citrix environments, or multi-user systems.
 - **Excluding system accounts** from profile cleanup operations to prevent accidental
@@ -75,7 +71,7 @@ You have two options to install **WinProfileOps**:
    Install-Module -Name WinProfileOps
    ```
 
-1. **Install from GitHub Releases**  
+2. **Install from GitHub Releases**  
    You can also download the latest release from the 
    [GitHub Releases page](https://github.com/LarryWisherMan/WinProfileOps/releases).  
    Download the `.zip` file, extract it, and place it in one of your `$PSModulePath`
@@ -96,17 +92,16 @@ $orphanedProfiles = Get-OrphanedProfiles -ComputerName "RemotePC" -IgnoreSpecial
 
 This retrieves all orphaned profiles on `RemotePC`, excluding special accounts.
 
-#### Example 2: Removing Orphaned Profiles
+#### Example 2: Retrieving User Profiles from the File System
 
-The `Remove-OrphanedProfiles` function allows you to remove orphaned profiles from
-a system:
+Use the `Get-UserProfilesFromFolders` function to retrieve user profile folders from
+the file system on a local or remote machine:
 
 ```powershell
-Remove-OrphanedProfiles -ComputerName "RemotePC" -WhatIf
+$userFolders = Get-UserProfilesFromFolders -ComputerName "Server01"
 ```
 
-This will show what would happen if the orphaned profiles on `RemotePC` were
-deleted, without performing the deletion.
+This retrieves user profile folders from the default `C:\Users` directory on `Server01`.
 
 #### Example 3: Retrieving User Profiles from the Registry
 
@@ -119,16 +114,17 @@ $registryProfiles = Get-UserProfilesFromRegistry -ComputerName "LocalHost"
 
 This retrieves user profiles from the registry on `LocalHost`.
 
-#### Example 4: Removing a Specific Profile
+#### Example 4: Auditing User Profiles
 
-You can remove a specific profile from the registry using `Remove-SIDProfile`:
+Use the `Invoke-UserProfileAudit` function to audit profiles across the file system and
+registry:
 
 ```powershell
-Remove-SIDProfile -SID "S-1-5-21-123456789-1001" -ComputerName "Server01"
+$allProfiles = Invoke-UserProfileAudit -ComputerName "Server01"
 ```
 
-This removes the registry key for the profile associated with the specified SID on
-`Server01`.
+This audits user profiles on `Server01`, returning both file system and registry
+profile information.
 
 ---
 
@@ -136,16 +132,42 @@ This removes the registry key for the profile associated with the specified SID 
 
 - **`Get-OrphanedProfiles`**: Detects orphaned profiles by checking both the
   registry and file system.
-- **`Remove-OrphanedProfiles`**: Safely removes orphaned profiles, with support for
-  `-WhatIf` and `-Confirm`.
+- **`Invoke-UserProfileAudit`**: Audits and compares profiles from both the registry
+  and file system, identifying discrepancies such as orphaned profiles.
 - **`Get-UserProfilesFromRegistry`**: Retrieves user profiles from the Windows
   registry.
 - **`Get-UserProfilesFromFolders`**: Retrieves user profile folders from the file
   system.
-- **`Remove-SIDProfile`**: Removes a user profile from the registry based on the
-  SID.
-- **`Test-SpecialAccount`**: Checks if a user profile is considered special or
-  system-related.
+
+---
+
+## Upcoming Features
+
+### `Remove-UserProfile` (Coming Soon!)
+
+The `Remove-UserProfile` function will provide the ability to remove user
+profiles safely from both the registry and the file system. Here are some of the
+ key features being tested for this functionality:
+
+- **Safely remove user profiles** either from the file system (i.e., user profile
+ folders) or from the Windows registry.
+
+- **Flexible inputs**: Accepts a UserProfile object, a username, or a SID for
+ profile removal.
+
+- **Powerful safeguards**: Uses `ShouldProcess`, `-WhatIf`, and `-Confirm` to
+ ensure that deletion is intentional and carefully reviewed.
+
+- **Handles special accounts**: Prevents accidental removal of critical system
+ or service accounts (e.g., `S-1-5-18`).
+
+- **Remote profile removal**: Enables profile deletion from both local and remote
+ computers.
+
+- **Verbose and error handling**: Logs every action taken and handles errors to
+ provide full transparency and avoid unexpected issues.
+
+The feature is being heavily tested to ensure safety, reliability, and accuracy.
 
 ---
 

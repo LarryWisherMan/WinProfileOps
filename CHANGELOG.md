@@ -19,16 +19,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Get-UserProfileFolders`
   - `Get-RegistryUserProfiles`
   - `Get-UserFolders`
-  - `Get-SIDProfileInfo`
 
 - Comment-based help documentation added for the following public functions:
-- `New-UserProfileObject`
-- `Remove-RegistryKeyForSID`
-- `Remove-ProfilesForSIDs`
-- `Get-RegistryKeyForSID`
-- `Get-ProfilePathFromSID`
-- `Test-FolderExists`
-- `Test-OrphanedProfile`
-- `Test-SpecialAccount`
+  - `New-UserProfileObject`
+  - `Remove-RegistryKeyForSID`
+  - `Remove-ProfilesForSIDs`
+  - `Get-RegistryKeyForSID`
+  - `Get-SIDProfileInfo`
+  - `Get-ProfilePathFromSID`
+  - `Test-FolderExists`
+  - `Test-OrphanedProfile`
+  - `Test-SpecialAccount`
 
 - Implemented and completed Unit Tests for private functions
+
+- **`Get-UserFolders`**
+  - Added error handling using a `try`/`catch` block to ensure that if `Get-ChildItem`
+   fails (e.g., due to permission issues), the function logs an error message and
+   returns an empty array instead of throwing an unhandled exception.
+
+  - Implemented an `OutputType` attribute for better PowerShell function introspection
+   and to clearly indicate that the function returns an array of `[PSCustomObject]`.
+
+- **`Invoke-UserProfileAudit` Supporting Functions:**
+
+  - These supporting functions are now utilized within `Invoke-UserProfileAudit`
+   to audit user profiles from both the file system and registry sources.
+
+    - **`Process-RegistryProfiles`**: 
+      - Processes profiles retrieved from the registry,
+    compares them with folder profiles, and identifies orphaned profiles.
+
+    - **`Process-FolderProfiles`**:
+      - Processes user profiles from the folder system,
+     identifies those without corresponding registry entries, and marks them as orphaned.
+
+    - **`Test-ComputerReachability`**:
+      - Encapsulates the common behavior of `Test-ComputerPing` to check if a computer
+      is reachable before proceeding with operations like profile audits. This ensures
+       consistent handling of unreachable computers across different functions.
+  
+### Changed
+
+- Moved `Get-SIDProfileInfo` to the private functions folder. It will serve as
+an internal function for `Get-RegistryUserProfiles`
+
+- **`Get-SIDProfileInfo`**
+  - Returns an empty array `@()` when no registry
+  key or SIDs are found, improving handling for cases where there are no profiles.
+
+  - Improved error handling to ensure proper error messages when the registry key
+  or subkeys cannot be opened.
+
+  - Enhanced handling of SIDs that are invalid or missing a `ProfileImagePath`,
+  logging appropriate warnings or verbose messages.
+
+  - Optimized function behavior to handle scenarios with no SIDs, invalid SID formats,
+  and missing `ProfileImagePath` values gracefully.
+
+
+- **`Get-UserFolders`**
+  - The function now logs errors when folder retrieval fails, improving diagnostic
+   feedback.
+
+  - The default value for the `ComputerName` parameter is set to `$env:COMPUTERNAME`,
+   ensuring local computer behavior by default without requiring the user to
+   specify it manually.
+  
+  - Refined the `Get-DirectoryPath` call to ensure path conversion consistency
+   across local and remote environments.
+
+  - General code clean-up and improved resilience, returning an empty array when
+   no folders are found or in case of failure, rather than proceeding
+   without valid data.
+
+- **`Get-UserProfilesFromRegistry`**
+  - Added error handling using a `try-catch` block to capture and log errors
+   during the retrieval of registry profiles.
+
+  - Implemented a check using `Test-ComputerPing` to verify if the target computer
+   is online or reachable before attempting to retrieve registry profiles.
+
+  - Returns an empty array `@()` when the target computer is offline or unreachable,
+   logging a warning in such cases.
+
+  - Returns an empty array `@()` when an error occurs while accessing the registry
+   profiles, logging an error message.
+
+  - Integrated with the `-ErrorAction Stop` parameter when calling `Get-SIDProfileInfo`,
+   ensuring that errors are caught and handled appropriately in the calling function.
+
+- **`Get-UserProfilesFromFolders`**
+  - Added error handling using a `try-catch` block to capture and log errors
+   during the retrieval of user profile folders.
+
+  - Implemented a check using `Test-ComputerPing` to verify if the target
+   computer is online or reachable before attempting to retrieve user folders.
+
+  - Returns an empty array `@()` when the target computer is offline or
+   unreachable, logging a warning in such cases.
+
+  - Returns an empty array `@()` when an error occurs while accessing the user
+   folders, logging an error message.
+
+
+- **`Invoke-UserProfileAudit`**
+  - Renamed the previous `Get-AllUserProfiles` function to `Invoke-UserProfileAudit`.
+  - Added `Get-AllUserProfiles` as an alias for `Invoke-UserProfileAudit`
+  to maintain backward compatibility.
+
+### Removed
+
+- Removed the old `Get-AllUserProfiles` function and replaced it with the new
+`Invoke-UserProfileAudit` function.
+
+- Temporarily Removed functions (`Remove-OrphanedProfiles` and
+ `Remove-ProfilesForSIDs`) related to Removing Users Folders and registry
+keys for further testing before implementing

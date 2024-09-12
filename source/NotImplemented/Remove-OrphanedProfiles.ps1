@@ -57,3 +57,6 @@ function Remove-OrphanedProfiles
     # Step 4: Return the results of the removal process
     return $removalResults
 }
+
+
+

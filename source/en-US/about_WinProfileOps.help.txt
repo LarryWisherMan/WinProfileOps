@@ -2,65 +2,72 @@ TOPIC
     about_WinProfileOps
 
 SHORT DESCRIPTION
-    The WinProfileOps module provides an essential toolkit for managing Windows user profiles across local and remote computers. This module automates complex profile management tasks such as detecting orphaned profiles, validating profile paths, and removing stale or corrupted profiles. It handles both filesystem and registry operations, leveraging its dependency on WinRegOps for registry-related functions.
+    The WinProfileOps module provides a comprehensive toolkit for managing Windows user profiles across local and remote computers. This module automates profile management tasks such as detecting orphaned profiles, retrieving profile information, and auditing discrepancies between profile data in the file system and the registry. It handles both filesystem and registry operations, leveraging its dependency on WinRegOps for registry-related tasks.
 
-WinProfileOps integrates with WinRegOps to seamlessly manage profiles by querying, validating, and deleting user profile-related data from the Windows registry. This module is ideal for system administrators seeking to streamline profile management operations, especially in environments with numerous users and computers.
+    WinProfileOps integrates seamlessly with WinRegOps to query, validate, and manage user profile-related data from the Windows registry. This module is ideal for system administrators seeking to streamline profile management, especially in environments with many users and computers.
 
-Dependencies:
-- WinRegOps: The WinProfileOps module depends on WinRegOps for registry operations such as querying, opening, and modifying registry keys related to user profiles.
+    Dependencies:
+    - WinRegOps: The WinProfileOps module depends on WinRegOps for registry operations, such as querying, opening, and modifying registry keys related to user profiles.
 
-Key features:
-- Retrieve user profile information from both the registry and file system (local and remote).
-- Detect orphaned profiles (e.g., missing profile folders or registry entries).
-- Remove orphaned or unused profiles from the system.
-- Filter and exclude special accounts like system or service accounts.
-- Built-in support for remote profile management.
-- Error handling for permission issues or unreachable systems.
-- Class-based profile objects for easy integration with other automation tasks.
+    Key features:
+    - Retrieve user profile information from both the registry and file system (local and remote).
+    - Detect orphaned profiles (e.g., missing profile folders or registry entries).
+    - Filter and exclude special accounts like system or service accounts.
+    - Remote profile management support for retrieving profiles from different systems.
+    - Robust error handling for permission issues or unreachable systems.
+    - Class-based profile objects for easy integration with automation tasks or scripts.
 
-Typical use cases include:
-- Cleaning up orphaned user profiles after system migrations or user deactivations.
-- Automating the detection and removal of stale profiles on local and remote systems.
-- Managing user profiles in large-scale, multi-user environments (e.g., terminal servers, Citrix environments).
-- Excluding system accounts from profile cleanup operations, ensuring important profiles remain intact.
-- Providing profile management capabilities as part of system maintenance routines.
+    Typical use cases include:
+    - Cleaning up orphaned profiles after system migrations or user deactivations.
+    - Automating stale profile detection on local and remote systems to maintain system performance.
+    - Managing user profiles in large-scale, multi-user environments (e.g., terminal servers, Citrix environments).
+    - Excluding critical system accounts from profile management tasks, ensuring important profiles remain unaffected.
+    - Providing profile management as part of system maintenance routines to enhance system health.
 
 LONG DESCRIPTION
     The WinProfileOps module provides an essential toolkit for managing Windows user profiles across local and remote computers. This module automates complex profile management tasks such as detecting orphaned profiles, validating profile paths, and removing stale or corrupted profiles. It handles both filesystem and registry operations, leveraging its dependency on WinRegOps for registry-related functions.
 
-WinProfileOps integrates with WinRegOps to seamlessly manage profiles by querying, validating, and deleting user profile-related data from the Windows registry. This module is ideal for system administrators seeking to streamline profile management operations, especially in environments with numerous users and computers.
+    WinProfileOps integrates with WinRegOps to seamlessly manage profiles by querying, validating, and deleting user profile-related data from the Windows registry. This module is ideal for system administrators seeking to streamline profile management operations, especially in environments with numerous users and computers.
 
-Dependencies:
-- WinRegOps: The WinProfileOps module depends on WinRegOps for registry operations such as querying, opening, and modifying registry keys related to user profiles.
+    Dependencies:
+    - WinRegOps: The WinProfileOps module depends on WinRegOps for registry operations such as querying, opening, and modifying registry keys related to user profiles.
 
-Key features:
-- Retrieve user profile information from both the registry and file system (local and remote).
-- Detect orphaned profiles (e.g., missing profile folders or registry entries).
-- Remove orphaned or unused profiles from the system.
-- Filter and exclude special accounts like system or service accounts.
-- Built-in support for remote profile management.
-- Error handling for permission issues or unreachable systems.
-- Class-based profile objects for easy integration with other automation tasks.
+    Key features:
+    - Retrieve user profile information from both the registry and file system (local and remote).
+    - Detect orphaned profiles (e.g., missing profile folders or registry entries).
+    - Filter and exclude special accounts like system or service accounts.
+    - Built-in support for remote profile management.
+    - Error handling for permission issues or unreachable systems.
+    - Class-based profile objects for easy integration with other automation tasks.
 
-Typical use cases include:
-- Cleaning up orphaned user profiles after system migrations or user deactivations.
-- Automating the detection and removal of stale profiles on local and remote systems.
-- Managing user profiles in large-scale, multi-user environments (e.g., terminal servers, Citrix environments).
-- Excluding system accounts from profile cleanup operations, ensuring important profiles remain intact.
-- Providing profile management capabilities as part of system maintenance routines.
+    Typical use cases include:
+    - Cleaning up orphaned user profiles after system migrations or user deactivations.
+    - Automating the detection and removal of stale profiles on local and remote systems.
+    - Managing user profiles in large-scale, multi-user environments (e.g., terminal servers, Citrix environments).
+    - Excluding system accounts from profile cleanup operations, ensuring important profiles remain intact.
+    - Providing profile management capabilities as part of system maintenance routines.
 
 EXAMPLES
-    PS C:\> {{ add examples here }}
+    PS C:\> Get-OrphanedProfiles -ComputerName "Server01"
+    Retrieves orphaned user profiles on "Server01".
+
+    PS C:\> Get-UserProfilesFromRegistry -ComputerName "LocalHost"
+    Retrieves user profiles from the registry on "LocalHost".
+
+    PS C:\> Get-UserProfilesFromFolders -ComputerName "Server01" -ProfileFolderPath "D:\UserProfiles"
+    Retrieves user profile folders from the "D:\UserProfiles" directory on "Server01".
+
+    PS C:\> Invoke-UserProfileAudit -ComputerName "Server01" -IgnoreSpecial
+    Audits user profiles on "Server01" and excludes special accounts.
 
 NOTE:
-    Thank you to all those who contributed to this module, by writing code, sharing opinions, and provided feedback.
+    Thank you to all those who contributed to this module, by writing code, sharing opinions, and providing feedback.
 
 TROUBLESHOOTING NOTE:
-    Look out on the Github repository for issues and new releases.
+    Look out on the GitHub repository for issues and new releases.
 
 SEE ALSO
-    - {{ Please add Project URI such as github }}}
+    - https://github.com/LarryWisherMan/WinProfileOps
 
 KEYWORDS
-    {{ Add comma separated keywords here }}
-
+    ProfileManagement, WindowsRegistry, OrphanedProfiles, UserProfiles, WinProfileOps, Automation, SystemAdministration
