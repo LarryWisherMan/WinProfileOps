@@ -5,6 +5,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New helper function `Validate-SIDFormat` to verify SID value upon retrieval
+in `Get-ProfilePathFromSID`
+
+- **Admin Detection and Environment Variable**: Added logic to detect whether the
+ current user is an administrator and set an environment variable
+  `WinProfileOps_IsAdmin` accordingly.
+
+  - If the user is an administrator, `$ENV:WinProfileOps_IsAdmin` is set to
+   `$true`. If not, it's set to `$false`.
+
+  - The environment variable is automatically removed when the module is
+   unloaded or when PowerShell exits.
+
+  - Registered an `OnRemove` script block and a `PowerShell.Exiting` event to
+   ensure cleanup of the environment variable on module removal or session exit.
+
+- **Get-SIDProfileInfoFallback**: Introduced a new fallback function
+   `Get-SIDProfileInfoFallback` that retrieves non-special user profile
+    information using the CIM/WMI method.
+
+### Changed
+
+- **Get-UserProfilesFromRegistry**: Updated the function to handle scenarios
+ where the current user does not have administrative privileges.
+
+  - The function now checks if the user is an administrator by evaluating the
+   `WinProfileOps_IsAdmin` environment variable.
+
+  - If the user has administrator privileges, the function retrieves user
+   profiles from the registry using `Get-SIDProfileInfo`.
+
+  - If the user lacks administrative privileges, the function falls back to the
+   `Get-SIDProfileInfoFallback` method, which retrieves user profiles using
+    CIM/WMI without requiring registry access.
+
+  - A warning is logged when the fallback method is used, indicating that
+   special system accounts are excluded.
+
 ## [0.2.0] - 2024-09-12
 
 ### Added
