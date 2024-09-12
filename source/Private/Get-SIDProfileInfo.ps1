@@ -64,9 +64,8 @@ function Get-SIDProfileInfo
     $ProfileRegistryItems = foreach ($sid in $subKeyNames)
     {
         # Validate SID format (SIDs typically start with 'S-1-' and follow a specific pattern)
-        if ($sid -notmatch '^S-1-\d+-\d+(-\d+){1,}$')
+        if (-not (Validate-SIDFormat -SID $sid))
         {
-            Write-Warning "Invalid SID format encountered: '$sid'. Skipping."
             continue
         }
 
