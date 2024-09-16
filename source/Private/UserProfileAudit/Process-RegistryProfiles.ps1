@@ -53,6 +53,7 @@ function Process-RegistryProfiles
         $folderExists = $null
         $accessError = $false
 
+        $folderName = Split-Path -Path $profilePath -Leaf
         $isSpecial = Test-SpecialAccount -FolderName $folderName -SID $regProfile.SID -ProfilePath $profilePath
 
         if ($IgnoreSpecial -and $isSpecial)
@@ -75,7 +76,7 @@ function Process-RegistryProfiles
             Write-Warning "Error testing folder existence for profile: $profilePath. Error: $_"
         }
 
-        $folderName = Split-Path -Path $profilePath -Leaf
+
 
         $userProfile = Test-OrphanedProfile -SID $regProfile.SID -ProfilePath $profilePath `
             -FolderExists $folderExists -AccessError $accessError -IgnoreSpecial $IgnoreSpecial `

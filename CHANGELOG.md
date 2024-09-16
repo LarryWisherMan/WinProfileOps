@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- removed bug from `Process-RegistryProfiles` regarding populating the
+FolderName variable
+
 ### Added
 
 - New helper function `Validate-SIDFormat` to verify SID value upon retrieval
