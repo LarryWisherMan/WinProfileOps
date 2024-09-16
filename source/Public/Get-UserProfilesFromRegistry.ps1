@@ -43,18 +43,9 @@ function Get-UserProfilesFromRegistry
             return @()  # Return an empty array
         }
 
-        # If user is an admin, use Get-SIDProfileInfo (Registry-based)
-        if ($ENV:WinProfileOps_IsAdmin -eq $true)
-        {
-            Write-Verbose "User has administrator privileges, using registry-based method."
-            return Get-SIDProfileInfo -ComputerName $ComputerName
-        }
-        else
-        {
-            Write-Warning "User lacks administrator privileges. Switching to fallback method which excludes special accounts from the results."
-            return Get-SIDProfileInfoFallback -ComputerName $ComputerName
-        }
-
+        # Get registry profiles and return them
+        $RegistryProfiles = Get-SIDProfileInfo -ComputerName $ComputerName -ErrorAction Stop
+        return $RegistryProfiles
     }
     catch
     {

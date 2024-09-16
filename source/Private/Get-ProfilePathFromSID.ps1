@@ -21,7 +21,7 @@ function Get-ProfilePathFromSID
     try
     {
         # Use Get-RegistryValue to retrieve the "ProfileImagePath"
-        $profileImagePath = Get-RegistryValue -Key $SidKey -ValueName "ProfileImagePath"
+        $profileImagePath = Get-RegistryValue -BaseKey $SidKey -ValueName "ProfileImagePath"
 
         if (-not $profileImagePath)
         {

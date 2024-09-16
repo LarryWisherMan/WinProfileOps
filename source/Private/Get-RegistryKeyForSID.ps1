@@ -24,7 +24,7 @@ function Get-RegistryKeyForSID
     try
     {
         # Use the general Open-RegistrySubKey function to get the subkey for the SID
-        $sidKey = Open-RegistrySubKey -ParentKey $ProfileListKey -SubKeyName $SID
+        $sidKey = Open-RegistrySubKey -BaseKey $ProfileListKey -Name $SID -writable $false
         if ($sidKey -eq $null)
         {
             Write-Warning "The SID '$SID' does not exist in the ProfileList registry."

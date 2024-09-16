@@ -32,8 +32,8 @@ Describe 'Get-SIDProfileInfo' -Tags 'Private' {
                         }
                     }
                     Mock Open-RegistrySubKey {
-                        param ($ParentKey, $SubKeyName)
-                        if ($SubKeyName -eq 'S-1-5-21-1001')
+                        param ($BaseKey, $Name)
+                        if ($Name -eq 'S-1-5-21-1001')
                         {
                             New-MockObject -Type 'Microsoft.Win32.RegistryKey' -Methods @{
                                 GetValue = { param($valueName) if ($valueName -eq 'ProfileImagePath')
@@ -42,7 +42,7 @@ Describe 'Get-SIDProfileInfo' -Tags 'Private' {
                                     } }
                             } -Properties @{ Name = 'S-1-5-21-1001' }
                         }
-                        elseif ($SubKeyName -eq 'S-1-5-21-1002')
+                        elseif ($Name -eq 'S-1-5-21-1002')
                         {
                             New-MockObject -Type 'Microsoft.Win32.RegistryKey' -Methods @{
                                 GetValue = { param($valueName) if ($valueName -eq 'ProfileImagePath')
@@ -63,7 +63,7 @@ Describe 'Get-SIDProfileInfo' -Tags 'Private' {
                     $result[1].ProfilePath | Should -Be "C:\Users\TestUser2"
 
                     Assert-MockCalled Open-RegistryKey -Exactly 1
-                    Assert-MockCalled Open-RegistrySubKey -Exactly 2
+                    Assert-MockCalled Get-RegistrySubKey -Exactly 2
                     Assert-MockCalled Get-ProfilePathFromSID -Exactly 2
                 }
             }
@@ -83,8 +83,8 @@ Describe 'Get-SIDProfileInfo' -Tags 'Private' {
                         }
                     }
                     Mock Open-RegistrySubKey {
-                        param ($ParentKey, $SubKeyName)
-                        if ($SubKeyName -eq 'S-1-5-21-1001')
+                        param ($BaseKey, $Name)
+                        if ($Name -eq 'S-1-5-21-1001')
                         {
                             return $null
                         }
@@ -234,8 +234,8 @@ Describe 'Get-SIDProfileInfo' -Tags 'Private' {
                         }
                     }
                     Mock Open-RegistrySubKey {
-                        param ($ParentKey, $SubKeyName)
-                        if ($SubKeyName -eq 'S-1-5-21-1001')
+                        param ($BaseKey, $Name)
+                        if ($Name -eq 'S-1-5-21-1001')
                         {
                             New-MockObject -Type 'Microsoft.Win32.RegistryKey' -Methods @{
                                 GetValue = { return 'C:\Users\TestUser1' }

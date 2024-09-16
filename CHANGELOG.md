@@ -45,6 +45,15 @@ in `Get-ProfilePathFromSID`
   - A warning is logged when the fallback method is used, indicating that
    special system accounts are excluded.
 
+- Refactored `Process-RegistryProfiles` to better account for access denied errors
+when testing profile paths with `Test-FolderExists`
+
+- Updated `UserProfile` object creation in `Test-OrphanedProfile` for
+ `$AccessError` Scenarios
+
+- Module is now using `WinRegOps` Version `0.4.0` for more refined registry value
+retrieval
+
 ## [0.2.0] - 2024-09-12
 
 ### Added

@@ -43,7 +43,7 @@ function Get-SIDProfileInfo
     )
 
     $RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName
+    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName -Writable $false
 
     # Handle null or empty registry key
     if (-not $ProfileListKey)
@@ -70,7 +70,7 @@ function Get-SIDProfileInfo
         }
 
         # Use Open-RegistrySubKey to get the subkey for the SID
-        $subKey = Open-RegistrySubKey -ParentKey $ProfileListKey -SubKeyName $sid
+        $subKey = Open-RegistrySubKey -BaseKey $ProfileListKey -Name $sid -writable $false
 
         if ($subKey -eq $null)
         {
@@ -98,5 +98,3 @@ function Get-SIDProfileInfo
 
     return $ProfileRegistryItems
 }
-
-
