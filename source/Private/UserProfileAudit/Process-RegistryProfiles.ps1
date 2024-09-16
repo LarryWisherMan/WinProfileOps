@@ -50,8 +50,9 @@ function Process-RegistryProfiles
     foreach ($regProfile in $RegistryProfiles)
     {
         $profilePath = $regProfile.ProfilePath
-        $folderExists = Test-FolderExists -ProfilePath $profilePath -ComputerName $ComputerName
-        $folderName = Split-Path -Path $profilePath -Leaf
+        $folderExists = $null
+        $accessError = $false
+
         $isSpecial = Test-SpecialAccount -FolderName $folderName -SID $regProfile.SID -ProfilePath $profilePath
 
         if ($IgnoreSpecial -and $isSpecial)
@@ -59,9 +60,28 @@ function Process-RegistryProfiles
             continue
         }
 
+        try
+        {
+            $folderExists = Test-FolderExists -ProfilePath $profilePath -ComputerName $ComputerName -ErrorAction Stop
+        }
+        catch [UnauthorizedAccessException]
+        {
+            $folderExists = $false
+            $accessError = $true
+        }
+        catch
+        {
+            $folderExists = $false
+            Write-Warning "Error testing folder existence for profile: $profilePath. Error: $_"
+        }
+
+        $folderName = Split-Path -Path $profilePath -Leaf
+
         $userProfile = Test-OrphanedProfile -SID $regProfile.SID -ProfilePath $profilePath `
-            -FolderExists $folderExists -IgnoreSpecial $IgnoreSpecial `
+            -FolderExists $folderExists -AccessError $accessError -IgnoreSpecial $IgnoreSpecial `
             -IsSpecial $isSpecial -ComputerName $ComputerName
+
+        # Add this line to include the user profile in the processed array
         $processedProfiles += $userProfile
     }
 

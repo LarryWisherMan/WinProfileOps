@@ -90,5 +90,29 @@ Describe "New-UserProfileObject" -Tag 'Private' {
                 $result.IsSpecial | Should -Be $isSpecial
             }
         }
+
+        It "Should correctly handle OrphanReason 'AccessDenied'" {
+            InModuleScope -ScriptBlock {
+                # Arrange
+                $sid = "S-1-5-21-123456789-1004"
+                $profilePath = "C:\Users\Jane"
+                $isOrphaned = $false
+                $orphanReason = "AccessDenied"
+                $computerName = "Server01"
+                $isSpecial = $false
+
+                # Act
+                $result = New-UserProfileObject -SID $sid -ProfilePath $profilePath -IsOrphaned $isOrphaned -OrphanReason $orphanReason -ComputerName $computerName -IsSpecial $isSpecial
+
+                # Assert
+                $result.GetType().Name | Should -Be 'UserProfile'
+                $result.SID | Should -Be $sid
+                $result.ProfilePath | Should -Be $profilePath
+                $result.IsOrphaned | Should -Be $isOrphaned
+                $result.OrphanReason | Should -Be $orphanReason
+                $result.ComputerName | Should -Be $computerName
+                $result.IsSpecial | Should -Be $isSpecial
+            }
+        }
     }
 }

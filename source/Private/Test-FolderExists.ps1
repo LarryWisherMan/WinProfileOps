@@ -64,6 +64,11 @@ function Test-FolderExists
         # Return whether the path exists
         return Test-Path $pathToCheck
     }
+    catch [UnauthorizedAccessException]
+    {
+        Write-Warning "Access denied when testing folder existence for profile: $ProfilePath. Error: $_"
+        throw
+    }
     catch
     {
         Write-Error "An error occurred: $_"

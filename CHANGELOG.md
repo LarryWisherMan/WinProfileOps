@@ -29,6 +29,9 @@ in `Get-ProfilePathFromSID`
 
 ### Changed
 
+- Module is now using `WinRegOps` Version `0.4.0` for more refined registry value
+retrieval
+
 - **Get-UserProfilesFromRegistry**: Updated the function to handle scenarios
  where the current user does not have administrative privileges.
 

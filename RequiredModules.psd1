@@ -20,5 +20,13 @@
     Sampler               = 'latest'
     'Sampler.GitHubTasks' = 'latest'
     'WisherTools.Helpers' = 'latest'
-    'WinRegOps'           = '0.3.0'
+    #'WinRegOps'           = '0.3.0'
+
+    'WinRegOps'           = @{
+        Version    = '0.4.0-preview0001'
+        Parameters = @{
+            AllowPrerelease = $true
+            Repository      = "PSGallery"
+        }
+    }
 }
