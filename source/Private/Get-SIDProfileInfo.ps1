@@ -11,6 +11,9 @@
 .PARAMETER ComputerName
     The name of the computer from which to retrieve profile information. Defaults to the local computer.
 
+.parameter RegistryPath
+    The registry path to the ProfileList key. Defaults to "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList".
+
 .EXAMPLE
     Get-SIDProfileInfo -ComputerName "Server01"
     Retrieves profile information for all valid SIDs stored in the registry on "Server01".
@@ -39,11 +42,11 @@ function Get-SIDProfileInfo
     [OutputType([PSCustomObject[]])]
     [CmdletBinding()]
     param (
-        [string]$ComputerName = $env:COMPUTERNAME
+        [string]$ComputerName = $env:COMPUTERNAME,
+        [string]$RegistryPath = $env:GetSIDProfileInfo_RegistryPath
     )
 
-    $RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName -Writable $false
+    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName -Writable $false -RegistryHive $env:GetSIDProfile_RegistryHive
 
     # Handle null or empty registry key
     if (-not $ProfileListKey)

@@ -50,8 +50,20 @@ function Process-RegistryProfiles
     foreach ($regProfile in $RegistryProfiles)
     {
         $profilePath = $regProfile.ProfilePath
-        $folderExists = $null
+        $folderExists = $false
         $accessError = $false
+
+        if ($null -eq $profilePath)
+        {
+            $isSpecial = Test-SpecialAccount -SID $regProfile.SID
+            $userProfile = Test-OrphanedProfile -SID $regProfile.SID -ProfilePath $null `
+                -FolderExists $folderExists -AccessError $accessError -IgnoreSpecial $IgnoreSpecial `
+                -IsSpecial $isSpecial -ComputerName $ComputerName
+
+            # Add this line to include the user profile in the processed array
+            $processedProfiles += $userProfile
+            continue
+        }
 
         $folderName = Split-Path -Path $profilePath -Leaf
         $isSpecial = Test-SpecialAccount -FolderName $folderName -SID $regProfile.SID -ProfilePath $profilePath

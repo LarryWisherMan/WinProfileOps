@@ -38,7 +38,7 @@ function Remove-RegistryKeyForSID
         if ($PSCmdlet.ShouldProcess("SID: $SID on $ComputerName", "Remove registry key"))
         {
             # Use the general Remove-RegistrySubKey function to delete the SID's subkey
-            return Remove-RegistrySubKey -ParentKey $ProfileListKey -SubKeyName $SID -ComputerName $ComputerName -Confirm:$false
+            return Remove-RegistrySubKey -ParentKey $ProfileListKey -SubKeyName $SID -Confirm:$false
         }
         else
         {

@@ -90,3 +90,70 @@ function Remove-ProfilesForSIDs
     # Return the array of deletion results
     return $deletionResults
 }
+
+
+function Remove-ProfilesForSIDs {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]]$SIDs,  # Accept multiple SIDs as an array
+
+        [Parameter(Mandatory = $false)]
+        [string]$ComputerName = $env:COMPUTERNAME  # Default to local computer
+    )
+
+    # Base registry path for profiles
+    $RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+    $deletionResults = @()
+
+    # Loop through each SID and process deletion
+    foreach ($sid in $SIDs) {
+        try {
+            # Full path to the profile SID key
+            $fullRegistryPath = Join-Path -Path $RegistryPath -ChildPath $sid
+
+            # Check if the profile key exists before trying to delete
+            $profileKeyExists = Test-Path "HKLM:\$fullRegistryPath"
+
+            if (-not $profileKeyExists) {
+                # If the profile does not exist, add a result indicating it wasn't found
+                $deletionResults += [PSCustomObject]@{
+                    SID         = $sid
+                    ProfilePath = $null
+                    Success     = $false
+                    Message     = "Profile SID '$sid' not found in registry."
+                    Computer    = $ComputerName
+                }
+                continue
+            }
+
+            # Attempt to remove the profile using Remove-RegistrySubKey
+            Remove-RegistrySubKey -RegistryHive 'LocalMachine' -RegistryPath $RegistryPath -SubKeyName $SID -ComputerName $ComputerName -ThrowOnMissingSubKey $false
+
+            # Add a result indicating success
+            $deletionResults += [PSCustomObject]@{
+                SID         = $sid
+                ProfilePath = $fullRegistryPath
+                Success     = $true
+                Message     = "Profile SID '$sid' removed successfully."
+                Computer    = $ComputerName
+            }
+        }
+        catch {
+            # Handle any errors that occur during deletion
+            Write-Error "An error occurred while processing SID '$sid'. $_"
+
+            # Add a result indicating failure due to an error
+            $deletionResults += [PSCustomObject]@{
+                SID         = $sid
+                ProfilePath = $null
+                Success     = $false
+                Message     = "Error occurred while processing SID '$sid'. Error: $_"
+                Computer    = $ComputerName
+            }
+        }
+    }
+
+    # Return the array of deletion results
+    return $deletionResults
+}
