@@ -60,6 +60,10 @@ function Invoke-UserProfileAudit
     begin
     {
         $AllProfiles = @()
+        if ($null -eq $ComputerName)
+        {
+            $ComputerName = $env:COMPUTERNAME
+        }
     }
 
     process

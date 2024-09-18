@@ -23,7 +23,7 @@
     #'WinRegOps'           = '0.3.0'
 
     'WinRegOps'           = @{
-        Version    = '0.4.0-preview0002'
+        Version    = '0.4.0-preview0003'
         Parameters = @{
             AllowPrerelease = $true
             Repository      = "PSGallery"
