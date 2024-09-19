@@ -23,7 +23,7 @@ function Update-JsonFile
         $existingData += $RegistryData
 
         # Write the updated data back to the file
-        $existingData | ConvertTo-Json -Depth 10 | Set-Content -Path $OutputFile
+        $existingData | ConvertTo-Json -Depth 10 | Set-Content -Path $OutputFile -Confirm:$false
     }
     else
     {

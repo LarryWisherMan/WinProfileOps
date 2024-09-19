@@ -2,73 +2,62 @@ function Remove-UserProfilesFromRegistry
 {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param (
-        [Parameter(Mandatory = $true)]
-        [string[]]$SIDs, # Array of SIDs to be removed
+        [Parameter(Mandatory = $true, ParameterSetName = "SIDSet")]
+        [string[]]$SIDs,
 
-        [Parameter(Mandatory = $false)]
-        [string]$ComputerName = $env:COMPUTERNAME, # Target computer
+        [Parameter(Mandatory = $true, ParameterSetName = "UserNameSet")]
+        [string[]]$Usernames,
 
-        [switch]$AuditOnly # If set, function will only audit and not remove profiles
+        [Parameter(Mandatory = $true, ParameterSetName = "UserProfileSet")]
+        [UserProfile[]]$UserProfiles,
+
+        [string]$ComputerName = $env:COMPUTERNAME,
+        [switch]$AuditOnly,
+        [switch]$Force
     )
 
     Begin
     {
-
-        $RegistryPath = $env:GetSIDProfileInfo_RegistryPath
-        $ProfileFolderPath = $env:GetSIDProfileInfo_ProfileFolderPath
+        # Retrieve and validate necessary paths
+        $RegistryPath = Test-EnvironmentVariable -Name 'GetSIDProfileInfo_RegistryPath'
+        $ProfileFolderPath = Test-EnvironmentVariable -Name 'GetSIDProfileInfo_ProfileFolderPath'
         $RegistryHive = $env:GetSIDProfile_RegistryHive
 
-        # Validate Registry Path Variables
-        if (-not $env:GetSIDProfileInfo_RegistryPath -or -not $env:GetSIDProfileInfo_ProfileFolderPath)
+        $deletionResults = @()
+
+        # Convert Usernames to SIDs if needed
+        if ($PSCmdlet.ParameterSetName -eq 'UserNameSet')
         {
-            throw "Missing registry or profile folder path environment variables."
+            $SIDs = Resolve-UsernamesToSIDs -Usernames $Usernames -ComputerName $ComputerName
         }
 
-        try
+        # Group user profiles by computer for UserProfileSet
+        if ($PSCmdlet.ParameterSetName -eq 'UserProfileSet')
         {
-            # Set up for registry backup - Get the directory path, and create if it doesn't exist
-            $RegBackUpDirectory = Get-DirectoryPath -basePath $env:WinProfileOps_RegBackUpDirectory -ComputerName $ComputerName -IsLocal ($ComputerName -eq $env:COMPUTERNAME)
-            $null = Test-DirectoryExistence -Directory $RegBackUpDirectory
-
-            # Open the registry key and audit user profiles
-            $BaseKey = Open-RegistryKey -RegistryHive $RegistryHive -RegistryPath $RegistryPath -ComputerName $ComputerName
-            $userProfileAudit = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -IgnoreSpecial
-
-            if (-not $BaseKey)
-            {
-                throw "Failed to open registry key at path: $RegistryPath"
-            }
-        }
-        catch
-        {
-            throw "Error in Begin block: $_"
+            $profilesByComputer = $UserProfiles | Group-Object -Property ComputerName
         }
 
-        $deletionResults = @() # Initialize results array
     }
 
     Process
     {
-        foreach ($SID in $SIDs)
+        # Invoke processing based on the parameter set
+        switch ($PSCmdlet.ParameterSetName)
         {
-
-            $SelectedProfile = $userProfileAudit | Where-Object { $_.SID -eq $SID }
-
-            if ($null -eq $SelectedProfile)
+            'UserProfileSet'
             {
-                $deletionResults += New-ProfileDeletionResult -SID $SID -ProfilePath $null -DeletionSuccess $false -DeletionMessage "Profile not found." -ComputerName $ComputerName
-                continue
+                foreach ($profileGroup in $profilesByComputer)
+                {
+                    Invoke-UserProfileProcessing -ComputerName $profileGroup.Name -Profiles $profileGroup.Group `
+                        -RegistryPath $RegistryPath -ProfileFolderPath $ProfileFolderPath -RegistryHive $RegistryHive `
+                        -Force:$Force -AuditOnly:$AuditOnly -Confirm:$PSCmdlet.MyInvocation.BoundParameters['Confirm']
+                }
             }
-
-            if ($AuditOnly)
+            'SIDSet'
             {
-                $deletionResults += New-ProfileDeletionResult -SID $SID -ProfilePath $SelectedProfile.ProfilePath -DeletionSuccess $true -DeletionMessage "Audit only, no deletion performed." -ComputerName $ComputerName
-                continue
-            }
-
-            if ($PSCmdlet.ShouldProcess($SID, "Remove Profile"))
-            {
-                $deletionResults += Invoke-ProcessProfileRemoval -SID $SID -BaseKey $BaseKey -RegBackUpDirectory $RegBackUpDirectory -ComputerName $ComputerName -selectedProfile $SelectedProfile
+                Invoke-UserProfileProcessing -ComputerName $ComputerName -SIDs $SIDs `
+                    -RegistryPath $RegistryPath -ProfileFolderPath $ProfileFolderPath -RegistryHive $RegistryHive `
+                    -Force:$Force -AuditOnly:$AuditOnly -Confirm:$PSCmdlet.MyInvocation.BoundParameters['Confirm']
             }
         }
     }

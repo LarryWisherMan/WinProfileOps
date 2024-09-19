@@ -1,21 +1,39 @@
 function New-ProfileDeletionResult
 {
+    [CmdletBinding(DefaultParameterSetName = 'Minimal')]
     param (
-        [Parameter(Mandatory = $true)]
+        # Parameter set 1: Full constructor with all parameters
+        [Parameter(Mandatory = $true, ParameterSetName = 'Full')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'SuccessOnly')]
         [string]$SID,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(ParameterSetName = 'Full')]
         [string]$ProfilePath = $null,
 
-        [Parameter(Mandatory = $true)]
-        [bool]$DeletionSuccess,
+        [Parameter(Mandatory = $true, ParameterSetName = 'Full')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'SuccessOnly')]
+        [bool]$DeletionSuccess = $false,
 
-        [Parameter(Mandatory = $true)]
-        [string]$DeletionMessage,
+        [Parameter(ParameterSetName = 'Full')]
+        [string]$DeletionMessage = $null,
 
-        [Parameter(Mandatory = $true)]
-        [string]$ComputerName
+        [Parameter(ParameterSetName = 'Full')]
+        [string]$ComputerName = $env:COMPUTERNAME
     )
 
-    return [ProfileDeletionResult]::new($SID, $ProfilePath, $DeletionSuccess, $DeletionMessage, $ComputerName)
+    switch ($PSCmdlet.ParameterSetName)
+    {
+        'Full'
+        {
+            return [ProfileDeletionResult]::new($SID, $ProfilePath, $DeletionSuccess, $DeletionMessage, $ComputerName)
+        }
+        'SuccessOnly'
+        {
+            return [ProfileDeletionResult]::new($SID, $DeletionSuccess)
+        }
+        'Minimal'
+        {
+            return [ProfileDeletionResult]::new($SID)
+        }
+    }
 }
