@@ -18,7 +18,7 @@ This command checks if the 'Path' environment variable is present and returns it
 String (Value of the environment variable)
 
 .NOTES
-This function will throw an error if the environment variable is missing.
+This function will throw an error if the environment variable is missing from sesion.
 #>
 function Test-EnvironmentVariable
 {
