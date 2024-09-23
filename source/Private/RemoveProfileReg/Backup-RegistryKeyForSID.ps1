@@ -1,3 +1,35 @@
+<#
+.SYNOPSIS
+Backs up a registry key associated with a specific SID to a specified directory.
+
+.DESCRIPTION
+The `Backup-RegistryKeyForSID` function creates a backup of the registry key associated with the provided SID from a remote or local machine. It ensures that the backup directory exists before proceeding, creates a JSON representation of the registry data, and appends the backup to an existing JSON file.
+
+.PARAMETER SID
+Specifies the Security Identifier (SID) for which the registry key backup is created.
+
+.PARAMETER BaseKey
+Specifies the base registry key under which the SID subkey exists.
+
+.PARAMETER RegBackUpDirectory
+Specifies the directory where the registry backup will be saved.
+
+.PARAMETER ComputerName
+Specifies the name of the computer from which the registry key is being backed up.
+
+.EXAMPLE
+Backup-RegistryKeyForSID -SID 'S-1-5-21-...' -BaseKey $RegistryKey -RegBackUpDirectory 'C:\Backups' -ComputerName 'Server01'
+
+Description:
+Backs up the registry key for the specified SID from Server01 to the 'C:\Backups' directory.
+
+.OUTPUTS
+Boolean indicating success or failure.
+
+.NOTES
+This function relies on helper functions like `New-DirectoryIfNeeded` and `New-RegistryKeyValuesObject` to handle registry operations.
+#>
+
 function Backup-RegistryKeyForSID
 {
     param (
