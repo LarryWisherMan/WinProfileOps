@@ -12,6 +12,8 @@ FolderName variable
 
 ### Added
 
+#### Functions
+
 - New helper function `Validate-SIDFormat` to verify SID value upon retrieval
 in `Get-ProfilePathFromSID`
 
@@ -28,9 +30,37 @@ in `Get-ProfilePathFromSID`
   - Registered an `OnRemove` script block and a `PowerShell.Exiting` event to
    ensure cleanup of the environment variable on module removal or session exit.
 
-- **Get-SIDProfileInfoFallback**: Introduced a new fallback function
-   `Get-SIDProfileInfoFallback` that retrieves non-special user profile
-    information using the CIM/WMI method.
+- **Remove-UserProfilesFromRegistry**: Added a new function to remove user profiles
+ from the Windows registry based on SIDs, Usernames, or UserProfile objects.
+
+  - Supports three parameter sets: `UserProfileSet`, `SIDSet`, and `UserNameSet`.
+
+  - Can be run in `AuditOnly` mode, where no actual deletion is performed, or
+   in deletion mode where profiles are removed.
+
+  - Includes a `Force` switch to bypass confirmation prompts and a `ComputerName`
+   parameter for targeting remote computers.
+
+  - Graceful error handling and logging for cases where the registry key cannot
+   be opened or profiles cannot be processed for specific computers.
+
+#### Environment Variables  
+
+- **`$env:WinProfileOps_IsAdmin`**: A boolean value that determines if the
+current user has administrative privileges. This is set by checking the user’s
+security role against the built-in Administrator group using Windows security principals.
+  
+- **`$env:WinProfileOps_RegistryPath`**: Specifies the registry path used to
+ manage user profiles. Default value: `"SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"`.
+
+- **`$env:WinProfileOps_RegistryHive`**: Defines the registry hive to use,
+ which is set to `LocalMachine` by default.
+
+- **`$env:WinProfileOps_RegBackUpDirectory`**: Specifies the directory where
+registry backups are stored. Default value: `"C:\LHStuff\RegBackUp"`.
+
+- **`$env:WinProfileOps_ProfileFolderPath`**: The profile folder path,
+defaulting to the system drive's `Users` folder. Example: `"C:\Users"`.
 
 ### Changed
 

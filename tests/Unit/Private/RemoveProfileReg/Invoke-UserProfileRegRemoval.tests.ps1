@@ -43,7 +43,7 @@ Describe 'Invoke-UserProfileRegRemoval' -Tags 'Private', 'UserProfileReg' {
 
                 # Mock profile audit results using New-UserProfileObject
                 Mock Invoke-UserProfileAudit {
-                    $mockAuditResults = @()
+                    $mockAuditResults = [UserProfile[]]@()
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12345' -ProfilePath 'C:\Users\Test1' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12346' -ProfilePath 'C:\Users\Test2' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     return $mockAuditResults
@@ -93,7 +93,7 @@ Describe 'Invoke-UserProfileRegRemoval' -Tags 'Private', 'UserProfileReg' {
 
                 # Mock profile audit results using New-UserProfileObject
                 Mock Invoke-UserProfileAudit {
-                    $mockAuditResults = @()
+                    $mockAuditResults = [UserProfile[]]@()
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12345' -ProfilePath 'C:\Users\Test1' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12346' -ProfilePath 'C:\Users\Test2' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     return $mockAuditResults
@@ -123,7 +123,7 @@ Describe 'Invoke-UserProfileRegRemoval' -Tags 'Private', 'UserProfileReg' {
 
                 # Mock profile audit results using New-UserProfileObject
                 Mock Invoke-UserProfileAudit {
-                    $mockAuditResults = @()
+                    $mockAuditResults = [UserProfile[]]@()
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12345' -ProfilePath 'C:\Users\Test1' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     return $mockAuditResults
                 }
@@ -177,7 +177,7 @@ Describe 'Invoke-UserProfileRegRemoval' -Tags 'Private', 'UserProfileReg' {
 
                 # Mock profile audit results using New-UserProfileObject
                 Mock Invoke-UserProfileAudit {
-                    $mockAuditResults = @()
+                    $mockAuditResults = [UserProfile[]]@()
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12345' -ProfilePath 'C:\Users\Test1' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-12346' -ProfilePath 'C:\Users\Test2' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false
                     return $mockAuditResults

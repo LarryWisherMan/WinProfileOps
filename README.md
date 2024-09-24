@@ -33,13 +33,18 @@ computers.
 
 - **Retrieve user profile information** from both the registry and the file system
   (local and remote).
+
 - **Detect orphaned profiles**, such as profiles missing from the file system or
   registry.
+
 - **Filter and exclude special accounts** like system or service accounts (e.g.,
   `defaultuser0`, `S-1-5-18`).
+
 - **Remote profile management** with support for handling user profiles across
   different systems.
+
 - **Error handling** for permission issues, unreachable systems, and missing data.
+
 - **Class-based profile objects** for easy integration with other automation tasks
   or scripts.
 
@@ -47,14 +52,17 @@ computers.
 
 ## Typical Use Cases
 
-- **Cleaning up orphaned profiles** after system migrations, user deactivations, or
-  profile corruption.
+- **Cleaning up orphaned profiles** after system migrations,
+user deactivations, or profile corruption.
+
 - **Managing user profiles in large-scale environments**, such as terminal servers,
   Citrix environments, or multi-user systems.
+
 - **Excluding system accounts** from profile cleanup operations to prevent accidental
   deletion of important system profiles.
-- **System maintenance routines** that include profile validation and management as
-  part of a broader system health check.
+
+- **System maintenance routines** that include profile validation
+ and management as part of a broader system health check.
 
 ---
 
@@ -71,9 +79,9 @@ You have two options to install **WinProfileOps**:
    Install-Module -Name WinProfileOps
    ```
 
-2. **Install from GitHub Releases**  
+1. **Install from GitHub Releases**  
    You can also download the latest release from the 
-   [GitHub Releases page](https://github.com/LarryWisherMan/WinProfileOps/releases).  
+   [GitHub Releases page](https://github.com/LarryWisherMan/WinProfileOps/releases).
    Download the `.zip` file, extract it, and place it in one of your `$PSModulePath`
    directories.
 
@@ -116,7 +124,8 @@ This retrieves user profiles from the registry on `LocalHost`.
 
 #### Example 4: Auditing User Profiles
 
-Use the `Invoke-UserProfileAudit` function to audit profiles across the file system and
+Use the `Invoke-UserProfileAudit` function to audit profiles across the file
+ system and
 registry:
 
 ```powershell
@@ -125,6 +134,36 @@ $allProfiles = Invoke-UserProfileAudit -ComputerName "Server01"
 
 This audits user profiles on `Server01`, returning both file system and registry
 profile information.
+
+#### Example 5: Removing User Profiles from the Registry
+
+Use the `Remove-UserProfilesFromRegistry` function to remove user profiles from
+ the Windows registry based on SIDs, Usernames, or UserProfile objects:
+
+- Remove profiles by SIDs:
+
+  ```powershell
+  Remove-UserProfilesFromRegistry -SIDs "S-1-5-21-1234567890-1", "S-1-5-21-1234567890-2"
+  ```
+
+- Remove profiles by usernames on a remote computer:
+
+  ```powershell
+  Remove-UserProfilesFromRegistry -Usernames "john.doe", "jane.smith"
+  -ComputerName "Server01" -Force -Confirm:$false
+  ```
+
+- Audit user profiles before removal:
+
+  ```powershell
+  Remove-UserProfilesFromRegistry -UserProfiles $userProfileList -AuditOnly
+  ```
+
+**Note:** To bypass any confirmation prompts during profile removal, both the
+ `-Force` switch and `-Confirm:$false` must be specified.
+  
+This allows you to either remove or audit profiles based on their SIDs,
+usernames, or UserProfile objects.
 
 ---
 
@@ -138,41 +177,33 @@ profile information.
   registry.
 - **`Get-UserProfilesFromFolders`**: Retrieves user profile folders from the file
   system.
+- **`Remove-UserProfilesFromRegistry`**: Removes user profiles from the Windows
+registry based on SIDs, Usernames, or UserProfile objects,
+ with options for audit-only mode or forced removal.
 
 ---
 
-## Upcoming Features
+## Environment Variables
 
-### `Remove-UserProfile` (Coming Soon!)
+The **WinProfileOps** module uses several environment variables to configure
+certain default paths and behaviors. These variables are automatically set
+when the module is loaded and can be adjusted as needed:
 
-The `Remove-UserProfile` function will provide the ability to remove user
-profiles safely from both the registry and the file system. Here are some of the
- key features being tested for this functionality:
+- **`$env:WinProfileOps_IsAdmin`**: Determines if the current user has
+administrative privileges. It is determined by the current context of the
+user.
+  
+- **`$env:WinProfileOps_RegistryPath`**: Specifies the registry path used for
+ managing user profiles. Default value: `"SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"`.
 
-- **Safely remove user profiles** either from the file system (i.e., user profile
- folders) or from the Windows registry.
+- **`$env:WinProfileOps_RegistryHive`**: Defines the registry hive used in
+ operations, set to `LocalMachine` by default.
 
-- **Flexible inputs**: Accepts a UserProfile object, a username, or a SID for
- profile removal.
+- **`$env:WinProfileOps_RegBackUpDirectory`**: Specifies the directory where
+ registry backups are stored. Default value: `"C:\LHStuff\RegBackUp"`.
 
-- **Powerful safeguards**: Uses `ShouldProcess`, `-WhatIf`, and `-Confirm` to
- ensure that deletion is intentional and carefully reviewed.
+- **`$env:WinProfileOps_ProfileFolderPath`**: The profile folder path, defaulting
+ to `"C:\Users"`, but can be customized based on the system's configuration.
 
-- **Handles special accounts**: Prevents accidental removal of critical system
- or service accounts (e.g., `S-1-5-18`).
-
-- **Remote profile removal**: Enables profile deletion from both local and remote
- computers.
-
-- **Verbose and error handling**: Logs every action taken and handles errors to
- provide full transparency and avoid unexpected issues.
-
-The feature is being heavily tested to ensure safety, reliability, and accuracy.
-
----
-
-## Contributing
-
-Contributions are welcome! Feel free to fork the repository, submit pull requests,
-or report issues. You can contribute by adding new features, improving the existing
-code, or enhancing the documentation.
+These variables are set automatically when the module is imported and are cleared
+ when the module is unloaded or the PowerShell session ends.
