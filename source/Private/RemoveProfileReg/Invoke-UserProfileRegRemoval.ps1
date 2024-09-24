@@ -78,28 +78,32 @@ function Invoke-UserProfileRegRemoval
         # Initialize a flag to determine if processing should continue
         $continueProcessing = $true
 
-        # Perform audit once for the computer
-        $BaseKey = Open-RegistryKey -ComputerName $ComputerName -RegistryHive $RegistryHive -RegistryPath $RegistryPath
-
-        # Exit early if the registry key cannot be opened
-        if (-not $BaseKey -or $null -eq $BaseKey)
+        try
         {
-            Write-Error "Failed to open registry key on computer $ComputerName"
-            $continueProcessing = $false  # Set the flag to prevent processing
-            return  # Stop the function entirely if BaseKey is null
-        }
+            # Try to open the registry key
+            $BaseKey = Open-RegistryKey -ComputerName $ComputerName -RegistryHive $RegistryHive -RegistryPath $RegistryPath -ErrorAction SilentlyContinue
 
-        # Perform the audit once and store the results if BaseKey is valid
-        if ($continueProcessing)
-        {
+            # Check if the registry key is valid
+            if (-not $BaseKey)
+            {
+                throw "Failed to open registry key on computer $ComputerName"
+            }
+
+            # Perform the audit if the BaseKey is valid
             $userProfileAudit = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -IgnoreSpecial
 
             if (-not $userProfileAudit)
             {
-                Write-Error "Failed to audit user profiles on computer $ComputerName"
-                $continueProcessing = $false  # Set the flag to prevent processing
-                return  # Stop the function entirely if the audit fails
+                throw "Failed to audit user profiles on computer $ComputerName"
             }
+
+        }
+        catch
+        {
+            # Catch any exceptions that occur during the process
+            Write-Error $_.Exception.Message
+            $continueProcessing = $false  # Set the flag to prevent further processing
+            return  # Exit the function early if an error occurs
         }
     }
 

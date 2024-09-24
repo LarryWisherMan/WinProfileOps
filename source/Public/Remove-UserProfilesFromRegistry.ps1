@@ -70,6 +70,7 @@ function Remove-UserProfilesFromRegistry
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "SIDSet")]
         [string[]]$SIDs,
 
+
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "UserNameSet")]
         [string[]]$Usernames,
 
@@ -82,9 +83,9 @@ function Remove-UserProfilesFromRegistry
     Begin
     {
         # Retrieve necessary environment variables
-        $RegistryPath = Test-EnvironmentVariable -Name 'GetSIDProfileInfo_RegistryPath'
-        $ProfileFolderPath = Test-EnvironmentVariable -Name 'GetSIDProfileInfo_ProfileFolderPath'
-        $RegistryHive = Test-EnvironmentVariable -Name 'GetSIDProfile_RegistryHive'
+        $RegistryPath = Test-EnvironmentVariable -Name 'WinProfileOps_RegistryPath'
+        $ProfileFolderPath = Test-EnvironmentVariable -Name 'WinProfileOps_ProfileFolderPath'
+        $RegistryHive = Test-EnvironmentVariable -Name 'WinProfileOps_RegistryHive'
 
         # Resolve SIDs if Usernames are provided
         if ($PSCmdlet.ParameterSetName -eq 'UserNameSet')
@@ -126,17 +127,26 @@ function Remove-UserProfilesFromRegistry
                 $SIDs = $profileGroup.Group.GetEnumerator().SID
                 $profileCount = $profileGroup.Count
 
-                # Call the confirmation prompt and skip this group if the user does not confirm
-                if (-not (PromptForConfirmation -ComputerName $thisComputerName -ItemCount $profileCount -AuditOnly:$AuditOnly -Context $PSCmdlet -confirm:$Confirm))
+                try
                 {
-                    Write-Verbose "User chose not to continue for $thisComputerName, skipping."
-                    continue
-                }
+                    # Call the confirmation prompt and skip this group if the user does not confirm
+                    if (-not (PromptForConfirmation -ComputerName $thisComputerName -ItemCount $profileCount -AuditOnly:$AuditOnly -Context $PSCmdlet -confirm:$Confirm))
+                    {
+                        Write-Verbose "User chose not to continue for $thisComputerName, skipping."
+                        continue
+                    }
 
-                # Process the profiles for this computer
-                $SIDs | Invoke-UserProfileRegRemoval -ComputerName $thisComputerName `
-                    -RegistryPath $RegistryPath -ProfileFolderPath $ProfileFolderPath `
-                    -RegistryHive $RegistryHive -Force:$Force -AuditOnly:$AuditOnly -Confirm:$Confirm
+                    # Process the profiles for this computer
+                    $SIDs | Invoke-UserProfileRegRemoval -ComputerName $thisComputerName `
+                        -RegistryPath $RegistryPath -ProfileFolderPath $ProfileFolderPath `
+                        -RegistryHive $RegistryHive -Force:$Force -AuditOnly:$AuditOnly -Confirm:$Confirm
+                }
+                catch
+                {
+                    # Handle any errors that occur during processing of this computer
+                    Write-Error "Failed to process $thisComputerName. Error: $_.Exception.Message"
+                    continue  # Move to the next computer in the loop
+                }
             }
         }
 

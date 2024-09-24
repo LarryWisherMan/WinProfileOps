@@ -42,9 +42,9 @@ if (-not (Test-Path $MockRegistryPath))
 }
 
 # Set up the environment variable for the registry path
-$env:GetSIDProfileInfo_RegistryPath = "Software\Pester\ProfileList"
-$env:GetSIDProfile_RegistryHive = [Microsoft.Win32.RegistryHive]::CurrentUser
-$env:GetSIDProfileInfo_ProfileFolderPath = "$TestDrive\Users"
+$env:WinProfileOps_RegistryPath = "Software\Pester\ProfileList"
+$env:WinProfileOps_RegistryHive = [Microsoft.Win32.RegistryHive]::CurrentUser
+$env:WinProfileOps_ProfileFolderPath = "$TestDrive\Users"
 
 # Create registry items for each mock user
 $MockUsers | ForEach-Object {
@@ -61,7 +61,7 @@ $MockUsers | ForEach-Object {
     $null = Set-ItemProperty -Path $RegistryItemPath -Name ProfileImagePath -Value "$TestDrive\Users\$FolderName"
 }
 
-$ProfileFolderPath = $env:GetSIDProfileInfo_ProfileFolderPath
+$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath
 $userProfileAudit = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -IgnoreSpecial
 
 $out = Remove-UserProfilesFromRegistry -SIDs "S-1-5-21-1234567890-1", "S-1-5-21-1234567890-2" -Confirm:$false

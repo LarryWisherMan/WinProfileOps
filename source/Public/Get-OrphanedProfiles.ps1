@@ -33,7 +33,7 @@ function Get-OrphanedProfiles
     [OutputType([UserProfile[]])]
     param (
         [string]$ComputerName = $env:COMPUTERNAME,
-        [string]$ProfileFolderPath = "$env:SystemDrive\Users",
+        [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath,
         [switch]$IgnoreSpecial
     )
 

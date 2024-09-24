@@ -28,7 +28,7 @@ function Remove-OrphanedProfiles
         [string]$ComputerName,
 
         [Parameter(Mandatory = $false)]
-        [string]$ProfileFolderPath = "$env:SystemDrive\Users",
+        [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath,
 
         [switch]$IgnoreSpecial
     )
@@ -57,6 +57,3 @@ function Remove-OrphanedProfiles
     # Step 4: Return the results of the removal process
     return $removalResults
 }
-
-
-

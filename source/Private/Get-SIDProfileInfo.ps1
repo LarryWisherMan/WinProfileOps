@@ -43,10 +43,10 @@ function Get-SIDProfileInfo
     [CmdletBinding()]
     param (
         [string]$ComputerName = $env:COMPUTERNAME,
-        [string]$RegistryPath = $env:GetSIDProfileInfo_RegistryPath
+        [string]$RegistryPath = $env:WinProfileOps_RegistryPath
     )
 
-    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName -Writable $false -RegistryHive $env:GetSIDProfile_RegistryHive
+    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName -Writable $false -RegistryHive $env:WinProfileOps_RegistryHive
 
     # Handle null or empty registry key
     if (-not $ProfileListKey)

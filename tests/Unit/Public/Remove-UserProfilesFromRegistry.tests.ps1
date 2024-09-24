@@ -8,10 +8,10 @@ BeforeAll {
     $PSDefaultParameterValues['Should:ModuleName'] = $script:dscModuleName
 
     # Set up environment variables used in the function
-    $env:GetSIDProfileInfo_RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-    $env:GetSIDProfile_RegistryHive = [Microsoft.Win32.RegistryHive]::LocalMachine
+    $env:WinProfileOps_RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+    $env:WinProfileOps_RegistryHive = [Microsoft.Win32.RegistryHive]::LocalMachine
     $env:WinProfileOps_RegBackUpDirectory = "C:\LHStuff\RegBackUp"
-    $env:GetSIDProfileInfo_ProfileFolderPath = "$env:SystemDrive\Users"
+    $env:WinProfileOps_ProfileFolderPath = "$env:SystemDrive\Users"
 }
 
 AfterAll {
@@ -763,11 +763,18 @@ Describe 'Remove-UserProfilesFromRegistry'  -Tag 'Public' {
                 $MockUserProfileObjects = @()
                 $MockUserProfileObjects += New-UserProfileObject -SID 'S-1-5-21-1234567890-1001' -ProfilePath 'C:\Users\testuser' -IsOrphaned $false -ComputerName 'TestComputer' -IsSpecial:$false
 
+                mock Write-Error
+
                 # Mock Invoke-UserProfileRegRemoval to throw an error
                 Mock -CommandName Invoke-UserProfileRegRemoval -MockWith { throw "Test exception" }
 
                 # Run the function and catch the error
-                { Remove-UserProfilesFromRegistry -UserProfiles $MockUserProfileObjects -Force } | Should -Throw "Test exception"
+                { Remove-UserProfilesFromRegistry -UserProfiles $MockUserProfileObjects -Force } | Should -not -Throw
+
+
+                # Assert that Write-Error was called
+                Assert-MockCalled -CommandName Write-Error -Exactly -Times 1 -Scope It
+
 
                 # Optionally, check if the function handled the error gracefully
                 # Assert that an appropriate error message is logged or returned

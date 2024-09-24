@@ -4,20 +4,20 @@
 $windowsIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $windowsPrincipal = New-Object Security.Principal.WindowsPrincipal($windowsIdentity)
 $env:WinProfileOps_IsAdmin = $windowsPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-$env:GetSIDProfileInfo_RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-$env:GetSIDProfile_RegistryHive = [Microsoft.Win32.RegistryHive]::LocalMachine
+$env:WinProfileOps_RegistryPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+$env:WinProfileOps_RegistryHive = [Microsoft.Win32.RegistryHive]::LocalMachine
 $env:WinProfileOps_RegBackUpDirectory = "C:\LHStuff\RegBackUp"
-$env:GetSIDProfileInfo_ProfileFolderPath = $env:SystemDrive + "\Users"
+$env:WinProfileOps_ProfileFolderPath = $env:SystemDrive + "\Users"
 
 
 [scriptblock]$SB = {
     if (Test-Path Env:\WinProfileOps_IsAdmin)
     {
         Remove-Item Env:\WinProfileOps_IsAdmin -errorAction SilentlyContinue
-        Remove-Item Env:\GetSIDProfileInfo_RegistryPath -ErrorAction SilentlyContinue
-        Remove-Item Env:\GetSIDProfile_RegistryHive -ErrorAction SilentlyContinue
+        Remove-Item Env:\WinProfileOps_RegistryPath -ErrorAction SilentlyContinue
+        Remove-Item Env:\WinProfileOps_RegistryHive -ErrorAction SilentlyContinue
         Remove-Item Env:\WinProfileOps_RegBackUpDirectory -ErrorAction SilentlyContinue
-        Remove-Item Env:\GetSIDProfileInfo_ProfileFolderPath -ErrorAction SilentlyContinue
+        Remove-Item Env:\WinProfileOps_ProfileFolderPath -ErrorAction SilentlyContinue
     }
 }
 
