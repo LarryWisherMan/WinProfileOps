@@ -5,54 +5,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Removed bug from `Process-RegistryProfiles` regarding populating the `FolderName`
+variable.
+
 ### Added
 
-- New helper function `Validate-SIDFormat` to verify SID value upon retrieval
-in `Get-ProfilePathFromSID`
+#### Functions
 
-- **Admin Detection and Environment Variable**: Added logic to detect whether the
- current user is an administrator and set an environment variable
-  `WinProfileOps_IsAdmin` accordingly.
+- New helper function `Validate-SIDFormat` to verify SID value upon retrieval in
+`Get-ProfilePathFromSID`.
 
-  - If the user is an administrator, `$ENV:WinProfileOps_IsAdmin` is set to
-   `$true`. If not, it's set to `$false`.
-
-  - The environment variable is automatically removed when the module is
-   unloaded or when PowerShell exits.
-
+- **Admin Detection and Environment Variable**: Added logic to detect whether
+the current user is an administrator and set an environment variable
+`WinProfileOps_IsAdmin` accordingly.
+  
+  - If the user is an administrator, `$env:WinProfileOps_IsAdmin` is set to
+  `$true`. If not, it's set to `$false`.
+  
+  - The environment variable is automatically removed when the module is unloaded
+  or when PowerShell exits.
+  
   - Registered an `OnRemove` script block and a `PowerShell.Exiting` event to
-   ensure cleanup of the environment variable on module removal or session exit.
+  ensure cleanup of the environment variable on module removal or session exit.
 
-- **Get-SIDProfileInfoFallback**: Introduced a new fallback function
-   `Get-SIDProfileInfoFallback` that retrieves non-special user profile
-    information using the CIM/WMI method.
+- **Remove-UserProfilesFromRegistry**: Added a new function to remove user profiles
+from the Windows registry based on SIDs, Usernames, or UserProfile objects.
+  
+  - Supports three parameter sets: `UserProfileSet`, `SIDSet`, and `UserNameSet`.
+  
+  - Can be run in `AuditOnly` mode, where no actual deletion is performed, or
+  in deletion mode where profiles are removed.
+  
+  - Includes a `Force` switch to bypass confirmation prompts and a
+  `ComputerName` parameter for targeting remote computers.
+  
+  - Graceful error handling and logging for cases where the registry key cannot
+  be opened or profiles cannot be processed for specific computers.
+
+#### Environment Variables
+
+- **`$env:WinProfileOps_IsAdmin`**: A boolean value that determines if the current
+ user has administrative privileges. This is set by checking the user's security
+ role against the built-in Administrator group using Windows security principals.
+
+- **`$env:WinProfileOps_RegistryPath`**: Specifies the registry path used to
+ manage user profiles. Default value: `"SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"`.
+
+- **`$env:WinProfileOps_RegistryHive`**: Defines the registry hive to use, which
+ is set to `LocalMachine` by default.
+
+- **`$env:WinProfileOps_RegBackUpDirectory`**: Specifies the directory where
+ registry backups are stored. Default value: `"C:\LHStuff\RegBackUp"`.
+
+- **`$env:WinProfileOps_ProfileFolderPath`**: The profile folder path, defaulting
+ to the system drive's `Users` folder. Example: `"C:\Users"`.
 
 ### Changed
 
 - **Get-UserProfilesFromRegistry**: Updated the function to handle scenarios
  where the current user does not have administrative privileges.
-
+  
   - The function now checks if the user is an administrator by evaluating the
    `WinProfileOps_IsAdmin` environment variable.
-
+  
   - If the user has administrator privileges, the function retrieves user
    profiles from the registry using `Get-SIDProfileInfo`.
-
+  
   - If the user lacks administrative privileges, the function falls back to the
    `Get-SIDProfileInfoFallback` method, which retrieves user profiles using
     CIM/WMI without requiring registry access.
-
-  - A warning is logged when the fallback method is used, indicating that
-   special system accounts are excluded.
+  
+  - A warning is logged when the fallback method is used, indicating that special
+   system accounts are excluded.
 
 - Refactored `Process-RegistryProfiles` to better account for access denied errors
-when testing profile paths with `Test-FolderExists`
+ when testing profile paths with `Test-FolderExists`.
 
 - Updated `UserProfile` object creation in `Test-OrphanedProfile` for
- `$AccessError` Scenarios
+ `$AccessError` scenarios.
 
-- Module is now using `WinRegOps` Version `0.4.0` for more refined registry value
-retrieval
+- The module is now using `WinRegOps` version `0.4.0` for more refined registry
+ value retrieval.
 
 ## [0.2.0] - 2024-09-12
 
@@ -97,7 +132,7 @@ retrieval
   - These supporting functions are now utilized within `Invoke-UserProfileAudit`
    to audit user profiles from both the file system and registry sources.
 
-    - **`Process-RegistryProfiles`**: 
+    - **`Process-RegistryProfiles`**:
       - Processes profiles retrieved from the registry,
     compares them with folder profiles, and identifies orphaned profiles.
 
@@ -127,7 +162,6 @@ an internal function for `Get-RegistryUserProfiles`
 
   - Optimized function behavior to handle scenarios with no SIDs, invalid SID formats,
   and missing `ProfileImagePath` values gracefully.
-
 
 - **`Get-UserFolders`**
   - The function now logs errors when folder retrieval fails, improving diagnostic
@@ -172,7 +206,6 @@ an internal function for `Get-RegistryUserProfiles`
 
   - Returns an empty array `@()` when an error occurs while accessing the user
    folders, logging an error message.
-
 
 - **`Invoke-UserProfileAudit`**
   - Renamed the previous `Get-AllUserProfiles` function to `Invoke-UserProfileAudit`.

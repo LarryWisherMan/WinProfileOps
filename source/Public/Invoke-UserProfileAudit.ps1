@@ -53,13 +53,17 @@ function Invoke-UserProfileAudit
         [Parameter(Mandatory = $false, ValueFromPipeline = $true)]
         [string]$ComputerName = $env:COMPUTERNAME,
 
-        [string]$ProfileFolderPath = "$env:SystemDrive\Users",
+        [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath,
         [switch]$IgnoreSpecial
     )
 
     begin
     {
         $AllProfiles = @()
+        if ($null -eq $ComputerName)
+        {
+            $ComputerName = $env:COMPUTERNAME
+        }
     }
 
     process

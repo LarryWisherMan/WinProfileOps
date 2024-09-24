@@ -48,6 +48,11 @@ function Test-OrphanedProfile
         return New-UserProfileObject -SID $SID -ProfilePath $ProfilePath -IsOrphaned $true `
             -OrphanReason "MissingFolder" -ComputerName $ComputerName -IsSpecial $IsSpecial
     }
+    elseif (-not $ProfilePath -and -not $FolderExists)
+    {
+        return New-UserProfileObject -SID $SID -ProfilePath $null -IsOrphaned $true `
+            -OrphanReason "MissingProfileImagePathAndFolder" -ComputerName $ComputerName -IsSpecial $IsSpecial
+    }
     else
     {
         return New-UserProfileObject -SID $SID -ProfilePath $ProfilePath -IsOrphaned $false `

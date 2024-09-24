@@ -35,7 +35,7 @@ function Get-UserProfilesFromFolders
     [CmdletBinding()]
     param (
         [string]$ComputerName = $env:COMPUTERNAME,
-        [string]$ProfileFolderPath = "$env:SystemDrive\Users"
+        [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath
     )
 
     try

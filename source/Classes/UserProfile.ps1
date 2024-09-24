@@ -6,6 +6,10 @@ class UserProfile
     [string]$OrphanReason = $null
     [string]$ComputerName
     [bool]$IsSpecial
+    [string] GetUserNameFromPath() {
+        return [System.IO.Path]::GetFileName($this.ProfilePath) # Extract the leaf (username) from the ProfilePath
+    }
+
 
     # Constructor to initialize the properties
     UserProfile([string]$sid, [string]$profilePath, [bool]$isOrphaned, [string]$orphanReason, [string]$computerName, [bool]$isSpecial)
