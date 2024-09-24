@@ -90,7 +90,7 @@ function Remove-UserProfilesFromRegistry
         # Resolve SIDs if Usernames are provided
         if ($PSCmdlet.ParameterSetName -eq 'UserNameSet')
         {
-            $SIDs = Resolve-UsernamesToSIDs -Usernames $Usernames -ComputerName $ComputerName
+            $SIDs = Resolve-UsernamesToSIDs -Usernames $Usernames
 
             # If no SIDs were resolved, return early
             if (-not $SIDs)

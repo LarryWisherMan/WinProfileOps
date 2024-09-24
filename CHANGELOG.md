@@ -89,6 +89,10 @@ from the Windows registry based on SIDs, Usernames, or UserProfile objects.
 - The module is now using `WinRegOps` version `0.4.0` for more refined registry
  value retrieval.
 
+- Refactored `Get-SIDFromUsername` to use `.NET` classes
+ (`System.Security.Principal.NTAccount` and `System.Security.Principal.SecurityIdentifier`)
+  instead of relying on `Get-CimInstance` for SID resolution.
+
 ## [0.2.0] - 2024-09-12
 
 ### Added

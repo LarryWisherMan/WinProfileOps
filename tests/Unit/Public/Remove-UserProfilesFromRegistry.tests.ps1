@@ -65,7 +65,7 @@ Describe 'Remove-UserProfilesFromRegistry'  -Tag 'Public' {
                 param($Usernames, $ComputerName)
 
                 $SIDs = $Usernames | ForEach-Object {
-                    Get-SIDFromUsername -Username $_ -ComputerName $ComputerName
+                    Get-SIDFromUsername -Username $_ 
                 }
 
                 return $SIDs
