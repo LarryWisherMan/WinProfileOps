@@ -1,36 +1,27 @@
 <#
 .SYNOPSIS
-Retrieves the Security Identifier (SID) for a given username from a specified computer, defaulting to the local computer if no computer name is provided.
+Retrieves the Security Identifier (SID) for a given username.
 
 .DESCRIPTION
-The `Get-SIDFromUsername` function queries the specified computer using WMI (CIM) to retrieve the SID associated with a given username. If the `ComputerName` parameter is not provided, the function defaults to the local computer. The function uses the `Get-CimInstance` cmdlet to perform the lookup on the remote or local computer. If the user exists and the SID is found, it is returned. If no SID is found or an error occurs, a warning message is displayed, and the function returns `$null`.
+The `Get-SIDFromUsername` function resolves the Security Identifier (SID) associated with a given username using the .NET `System.Security.Principal.NTAccount` class. The function translates the provided username into a SID by querying the local system. If the user exists and the SID can be resolved, it is returned. Otherwise, a warning is displayed, and the function returns `$null`.
 
 .PARAMETER Username
 Specifies the username for which to retrieve the SID. This parameter is mandatory.
 
-.PARAMETER ComputerName
-Specifies the name of the computer where the user account exists. This parameter is optional and defaults to the local computer (`localhost`). You can specify either a local or remote computer.
-
 .EXAMPLE
-Get-SIDFromUsername -Username 'JohnDoe' -ComputerName 'Server01'
+Get-SIDFromUsername -Username 'JohnDoe'
 
 Description:
-This command retrieves the SID for the user 'JohnDoe' from the computer 'Server01'. If the user exists on the computer and has a SID, it will be returned; otherwise, a warning will be displayed.
+This command retrieves the SID for the user 'JohnDoe' from the local computer. If the user exists and the SID is found, it is returned; otherwise, a warning will be displayed.
 
 .EXAMPLE
 Get-SIDFromUsername -Username 'LocalAdmin'
 
 Description:
-This command retrieves the SID for the user 'LocalAdmin' from the local computer (localhost) since no `ComputerName` is provided. If the user exists on the local computer and has a SID, it will be returned; otherwise, a warning will be displayed.
-
-.EXAMPLE
-Get-SIDFromUsername -Username 'DomainUser' -ComputerName 'DomainController'
-
-Description:
-This command retrieves the SID for the user 'DomainUser' from the remote computer 'DomainController'. If the user exists on the specified computer and has a SID, it will be returned; otherwise, a warning will be displayed.
+This command retrieves the SID for the user 'LocalAdmin' from the local computer. If the user exists and the SID is found, it is returned; otherwise, a warning will be displayed.
 
 .NOTES
-If the `ComputerName` is not provided, it defaults to the local computer.
+This function does not use WMI or CIM for querying user information, but rather the .NET `System.Security.Principal.NTAccount` class, which directly translates the username to a SID. As a result, this function works for both local and domain accounts if the appropriate access is available.
 #>
 
 function Get-SIDFromUsername
@@ -38,30 +29,29 @@ function Get-SIDFromUsername
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
-        [string]$Username,
-
-        [Parameter(Mandatory = $false)]
-        [string]$ComputerName = $env:COMPUTERNAME
+        [string]$Username
     )
 
     try
     {
         # Query WMI to get the SID for the given username
-        $userAccount = Get-CimInstance -Class Win32_UserAccount -ComputerName $ComputerName -Filter "Name = '$Username'"
+        $ntAccount = New-Object System.Security.Principal.NTAccount($Username)
 
-        if ($userAccount -and $userAccount.SID)
+        $SID = $ntAccount.Translate([System.Security.Principal.SecurityIdentifier])
+
+        if ($Null -ne $SID -and $Null -ne $SID.Value)
         {
-            return $userAccount.SID
+            return $SID.value
         }
         else
         {
-            Write-Warning "Could not find SID for username $Username on $ComputerName."
+            Write-Warning "Could not find SID for username $Username."
             return $null
         }
     }
     catch
     {
-        Write-Warning "An error occurred while trying to resolve SID for username $Username on $ComputerName. Error: $_"
+        Write-Warning "An error occurred while trying to resolve SID for username $Username . Error: $_"
         return $null
     }
 }

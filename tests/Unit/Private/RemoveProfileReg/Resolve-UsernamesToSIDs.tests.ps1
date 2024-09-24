@@ -33,22 +33,22 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return valid SIDs
                 Mock Get-SIDFromUsername {
-                    param($Username, $ComputerName)
+                    param($Username)
                     switch ($Username)
                     {
                         'user1'
                         {
-                            return 'S-1-5-21-1001'
+                            return 'S-1-5-21-1001' 
                         }
                         'user2'
                         {
-                            return 'S-1-5-21-1002'
+                            return 'S-1-5-21-1002' 
                         }
                     }
                 }
 
                 # Call the function with valid usernames
-                $result = Resolve-UsernamesToSIDs -Usernames 'user1', 'user2' -ComputerName 'Server01'
+                $result = Resolve-UsernamesToSIDs -Usernames 'user1', 'user2'
 
                 # Validate that the returned array contains the correct SIDs
                 $result | Should -Be @('S-1-5-21-1001', 'S-1-5-21-1002')
@@ -65,29 +65,29 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return SIDs for some usernames and $null for others
                 Mock Get-SIDFromUsername {
-                    param($Username, $ComputerName)
+                    param($Username)
                     switch ($Username)
                     {
                         'user1'
                         {
-                            return 'S-1-5-21-1001'
+                            return 'S-1-5-21-1001' 
                         }
                         'invalidUser'
                         {
-                            return $null
+                            return $null 
                         }
                     }
                 }
 
                 # Call the function with a mix of valid and invalid usernames
-                $result = Resolve-UsernamesToSIDs -Usernames 'user1', 'invalidUser' -ComputerName 'Server01'
+                $result = Resolve-UsernamesToSIDs -Usernames 'user1', 'invalidUser'
 
                 # Validate that the returned array contains only the valid SID
                 $result | Should -Be @('S-1-5-21-1001')
 
                 # Ensure that Write-Warning was called for the unresolved username
                 Assert-MockCalled Write-Warning -Exactly 1 -Scope It -ParameterFilter {
-                    $Message -eq 'Could not resolve SID for username invalidUser on Server01.'
+                    $Message -eq 'Could not resolve SID for username invalidUser.'
                 }
             }
         }
@@ -98,7 +98,7 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
         It 'Should return an empty array' {
             InModuleScope -ScriptBlock {
                 # Call the function with an empty array of usernames
-                $result = Resolve-UsernamesToSIDs -Usernames @() -ComputerName 'Server01'
+                $result = Resolve-UsernamesToSIDs -Usernames @()
 
                 # Validate that the result is an empty array
                 $result | Should -Be @()
@@ -116,26 +116,26 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return SIDs for multiple usernames
                 Mock Get-SIDFromUsername {
-                    param($Username, $ComputerName)
+                    param($Username)
                     switch ($Username)
                     {
                         'user1'
                         {
-                            return 'S-1-5-21-1001'
+                            return 'S-1-5-21-1001' 
                         }
                         'user2'
                         {
-                            return 'S-1-5-21-1002'
+                            return 'S-1-5-21-1002' 
                         }
                         'user3'
                         {
-                            return 'S-1-5-21-1003'
+                            return 'S-1-5-21-1003' 
                         }
                     }
                 }
 
                 # Call the function with multiple usernames
-                $result = Resolve-UsernamesToSIDs -Usernames 'user1', 'user2', 'user3' -ComputerName 'Server01'
+                $result = Resolve-UsernamesToSIDs -Usernames 'user1', 'user2', 'user3'
 
                 # Validate that the returned array contains the correct SIDs
                 $result | Should -Be @('S-1-5-21-1001', 'S-1-5-21-1002', 'S-1-5-21-1003')
@@ -156,14 +156,14 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
                 }
 
                 # Call the function with an unresolved username
-                $result = Resolve-UsernamesToSIDs -Usernames 'invalidUser' -ComputerName 'Server01'
+                $result = Resolve-UsernamesToSIDs -Usernames 'invalidUser'
 
                 # Validate that the result is an empty array
                 $result | Should -Be @()
 
                 # Ensure that Write-Warning was called with the correct message
                 Assert-MockCalled Write-Warning -Exactly 1 -Scope It -ParameterFilter {
-                    $Message -eq 'Could not resolve SID for username invalidUser on Server01.'
+                    $Message -eq 'Could not resolve SID for username invalidUser.'
                 }
             }
         }
