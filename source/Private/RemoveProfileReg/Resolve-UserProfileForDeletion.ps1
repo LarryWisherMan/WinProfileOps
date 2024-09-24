@@ -1,9 +1,34 @@
+<#
+.SYNOPSIS
+Finds the user profile for a specific SID in an audit result.
+
+.DESCRIPTION
+The `Resolve-UserProfileForDeletion` function searches through audit results to find the profile associated with a given SID. If the profile is not found, a warning is logged, and a `ProfileDeletionResult` is returned indicating failure.
+
+.PARAMETER SID
+Specifies the Security Identifier (SID) of the profile to search for.
+
+.PARAMETER AuditResults
+Specifies the audit results to search for the profile.
+
+.PARAMETER ComputerName
+Specifies the name of the computer where the profile is located.
+
+.EXAMPLE
+Resolve-UserProfileForDeletion -SID 'S-1-5-21-...' -AuditResults $AuditResults -ComputerName 'Server01'
+
+Description:
+Finds the user profile associated with the specified SID in the audit results for Server01.
+
+.OUTPUTS
+UserProfile or ProfileDeletionResult object.
+#>
 function Resolve-UserProfileForDeletion
 {
     param (
         [Parameter(Mandatory = $true)]
         [string]$SID, # The SID to search for
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [UserProfile[]]$AuditResults, # The audit results
         [Parameter(Mandatory = $true)]
         [string]$ComputerName       # The target computer name

@@ -40,8 +40,8 @@ function New-ProfileDeletionResult
         [string]$SID,
 
         # Full parameter set properties
-        [Parameter(Mandatory = $true, ParameterSetName = 'Full')]
-        [string]$ProfilePath,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Full')]
+        [string]$ProfilePath =$null,
 
         [Parameter(Mandatory = $true, ParameterSetName = 'Full')]
         [Parameter(Mandatory = $true, ParameterSetName = 'SuccessOnly')]
