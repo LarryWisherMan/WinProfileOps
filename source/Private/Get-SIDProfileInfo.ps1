@@ -46,7 +46,8 @@ function Get-SIDProfileInfo
         [string]$RegistryPath = $env:WinProfileOps_RegistryPath
     )
 
-    $ProfileListKey = Open-RegistryKey -RegistryPath $RegistryPath -ComputerName $ComputerName -Writable $false -RegistryHive $env:WinProfileOps_RegistryHive
+    # Open the ProfileList registry key
+    $ProfileListKey = Open-RegistryKey -RegistryPath $env:WinProfileOps_RegistryPath -ComputerName $ComputerName -Writable $false -RegistryHive $env:WinProfileOps_RegistryHive
 
     # Handle null or empty registry key
     if (-not $ProfileListKey)
@@ -64,6 +65,9 @@ function Get-SIDProfileInfo
         return @()  # Return an empty array
     }
 
+    # Open the HKEY_USERS registry hive to check for loaded profiles
+    $HKEYUsers = Open-RegistryKey -RegistryHive Users -ComputerName $ComputerName -Writable $false
+
     $ProfileRegistryItems = foreach ($sid in $subKeyNames)
     {
         # Validate SID format (SIDs typically start with 'S-1-' and follow a specific pattern)
@@ -73,7 +77,7 @@ function Get-SIDProfileInfo
         }
 
         # Use Open-RegistrySubKey to get the subkey for the SID
-        $subKey = Open-RegistrySubKey -BaseKey $ProfileListKey -Name $sid -writable $false
+        $subKey = Open-RegistrySubKey -BaseKey $ProfileListKey -Name $sid -Writable $false
 
         if ($subKey -eq $null)
         {
@@ -89,15 +93,51 @@ function Get-SIDProfileInfo
             Write-Verbose "ProfileImagePath not found for SID '$sid'."
             $profilePath = $null
         }
+        else
+        {
+            $HasUserFolder = Test-FolderExists -ProfilePath $profilePath -ComputerName $ComputerName
+        }
 
-        # Return a PSCustomObject with SID, ProfilePath, and ComputerName
+        # Determine if the profile is loaded by checking HKEY_USERS
+        $isLoaded = $HKEYUsers.GetSubKeyNames() -contains $sid
+
+        # Retrieve the username and domain from the SID
+        $ntAccount = New-Object System.Security.Principal.SecurityIdentifier($sid)
+        $userAccount = $ntAccount.Translate([System.Security.Principal.NTAccount])
+        $domain, $username = $userAccount.Value.Split('\', 2)
+
+        $TestSpecialParams = @{}
+
+        if (-not $profilePath)
+        {
+            $TestSpecialParams.Add("SID", $sid)
+
+            Write-Verbose "ProfileImagePath not found for SID '$sid'."
+            $profilePath = $null
+        }
+        else
+        {
+            $TestSpecialParams.Add("FolderName", (Split-Path -Path $profilePath -Leaf))
+            $TestSpecialParams.Add("ProfilePath", $profilePath)
+            $HasUserFolder = Test-FolderExists -ProfilePath $profilePath -ComputerName $ComputerName
+        }
+
+        $IsSpecial = Test-SpecialAccount @TestSpecialParams
+
+        # Return a PSCustomObject with SID, ProfilePath, ComputerName, ExistsInRegistry, IsLoaded, UserName, and Domain
         [PSCustomObject]@{
             SID              = $sid
             ProfilePath      = $profilePath
             ComputerName     = $ComputerName
             ExistsInRegistry = $true
+            IsLoaded         = $isLoaded
+            HasUserFolder    = $HasUserFolder
+            UserName         = $userName
+            Domain           = $domain
+            IsSpecial        = $IsSpecial
         }
     }
 
     return $ProfileRegistryItems
 }
+

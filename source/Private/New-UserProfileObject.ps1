@@ -24,14 +24,17 @@
 
 function New-UserProfileObject
 {
-    [outputType([UserProfile])]
+    [OutputType([UserProfile])]
     param (
         [string]$SID,
         [string]$ProfilePath,
         [bool]$IsOrphaned,
         [string]$OrphanReason = $null,
         [string]$ComputerName,
-        [bool]$IsSpecial
+        [bool]$IsSpecial,
+        [bool]$IsLoaded,
+        [string]$UserName,
+        [string]$Domain
     )
 
     return [UserProfile]::new(
@@ -40,6 +43,9 @@ function New-UserProfileObject
         $IsOrphaned,
         $OrphanReason,
         $ComputerName,
-        $IsSpecial
+        $IsSpecial,
+        $IsLoaded,
+        $UserName,
+        $Domain
     )
 }
