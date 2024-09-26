@@ -54,6 +54,10 @@ function Invoke-UserProfileAudit
         [string]$ComputerName = $env:COMPUTERNAME,
 
         [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath,
+
+        [string]$RegistryPath = $Env:WinProfileOps_RegistryPath,
+        [string]$RegistryHive = $env:WinProfileOps_RegistryHive,
+
         [switch]$IgnoreSpecial
     )
 
@@ -70,16 +74,27 @@ function Invoke-UserProfileAudit
     {
         if (-not (Test-ComputerReachability -ComputerName $ComputerName))
         {
+            Write-Warning "Computer '$ComputerName' is not reachable."
             return
         }
 
         try
         {
-            $UserFolders = Get-UserProfilesFromFolders -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath
-            $RegistryProfiles = Get-UserProfilesFromRegistry -ComputerName $ComputerName
+            # Step 1: Gather profile information from the registry
+            $RegistryProfiles = Get-UserProfilesFromRegistry -ComputerName $ComputerName -RegistryHive $RegistryHive -RegistryPath $RegistryPath
+            $FolderProfiles = Get-UserProfilesFromFolders -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath
 
-            $AllProfiles += Process-RegistryProfiles -RegistryProfiles $RegistryProfiles -ComputerName $ComputerName -IgnoreSpecial:$IgnoreSpecial
-            $AllProfiles += Process-FolderProfiles -UserFolders $UserFolders -RegistryProfiles $RegistryProfiles -ComputerName $ComputerName -IgnoreSpecial:$IgnoreSpecial
+            $JoinedProfiles = Join-UserProfiles -FolderProfiles $FolderProfiles -RegistryProfiles $RegistryProfiles
+
+
+            # Step 5: Optionally filter out special profiles if IgnoreSpecial is set
+            if ($IgnoreSpecial)
+            {
+                $JoinedProfiles = $JoinedProfiles | Where-Object { -not $_.IsSpecial }
+            }
+
+            $JoinedProfiles | ConvertTo-UserProfile -View OrphanDetails
+
         }
         catch
         {
@@ -89,6 +104,6 @@ function Invoke-UserProfileAudit
 
     end
     {
-        $AllProfiles
+
     }
 }
