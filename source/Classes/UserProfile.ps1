@@ -1,24 +1,52 @@
 class UserProfile
 {
+    [datetime]$Created
+    [string]$UserName
     [string]$SID
     [string]$ProfilePath
+    [string]$ProfileState
+    [bool]$HasRegistryEntry
+    [bool]$HasUserFolder
+    [datetime]$LastLogonDate
+    [datetime]$LastLogOffDate
     [bool]$IsOrphaned
-    [string]$OrphanReason = $null
+    [string]$OrphanReason
     [string]$ComputerName
     [bool]$IsSpecial
-    [string] GetUserNameFromPath() {
-        return [System.IO.Path]::GetFileName($this.ProfilePath) # Extract the leaf (username) from the ProfilePath
-    }
+    [bool]$IsLoaded
+    [string]$Domain
 
-
-    # Constructor to initialize the properties
-    UserProfile([string]$sid, [string]$profilePath, [bool]$isOrphaned, [string]$orphanReason, [string]$computerName, [bool]$isSpecial)
+    UserProfile(
+        [string]$SID,
+        [string]$UserName,
+        [string]$ProfilePath,
+        [string]$ProfileState,
+        [bool]$HasRegistryEntry,
+        [bool]$HasUserFolder,
+        [datetime]$LastLogonDate,
+        [datetime]$LastLogOffDate,
+        [bool]$IsOrphaned,
+        [string]$OrphanReason,
+        [string]$ComputerName,
+        [bool]$IsSpecial,
+        [bool]$IsLoaded,
+        [string]$Domain
+    )
     {
-        $this.SID = $sid
-        $this.ProfilePath = $profilePath
-        $this.IsOrphaned = $isOrphaned
-        $this.OrphanReason = $orphanReason
-        $this.ComputerName = $computerName
-        $this.IsSpecial = $isSpecial
+        $this.Created = [DateTime]::Now
+        $this.SID = $SID
+        $this.UserName = $UserName
+        $this.ProfilePath = $ProfilePath
+        $this.ProfileState = $ProfileState
+        $this.HasRegistryEntry = $HasRegistryEntry
+        $this.HasUserFolder = $HasUserFolder
+        $this.LastLogonDate = if ($LastLogonDate -eq $null) { [datetime]::MinValue } else { $LastLogonDate }
+        $this.LastLogOffDate = if ($LastLogOffDate -eq $null) { [datetime]::MinValue } else { $LastLogOffDate }
+        $this.IsOrphaned = $IsOrphaned
+        $this.OrphanReason = $OrphanReason
+        $this.ComputerName = $ComputerName
+        $this.IsSpecial = $IsSpecial
+        $this.IsLoaded = $IsLoaded
+        $this.Domain = $Domain
     }
 }
