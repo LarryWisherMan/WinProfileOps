@@ -84,7 +84,11 @@
             "label": "test",
             "type": "shell",
             "command": "&${cwd}/build.ps1",
-            "args": ["-AutoRestore","-Tasks","test"],
+            "args": [
+                "-AutoRestore",
+                "-Tasks",
+                "test"
+            ],
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -121,7 +125,6 @@
                 }
             ]
         },
-
         {
             "label": "CreateTestScript",
             "type": "shell",
@@ -144,8 +147,72 @@
                 "panel": "shared"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Combine PowerShell Functions from Folder into One File",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/_WorkSpaceTasks/Combine-PowerShellFunctions.ps1",
+                "-FolderPath",
+                "${input:folderPath}", // Prompt for folder path
+                "-ExportTo",
+                "${input:destinationFile}" // Prompt for the single export file
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Separate PowerShell Functions into Multiple Files",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/_WorkSpaceTasks/Separate-PowerShellFunctions.ps1", // Correct path to the script
+                "-FunctionFile",
+                "${file}", // The selected file in VSCode
+                "-ExportTo",
+                "${input:destinationFolder}" // Prompt for the export folder
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+    ],
+    "inputs": [
+        {
+            "id": "functionFiles",
+            "type": "promptString",
+            "description": "Enter the paths to the PowerShell files (comma-separated) to combine functions",
+            "default": "${workspaceFolder}/path_to_first_file.ps1,${workspaceFolder}/path_to_second_file.ps1"
+        },
+        {
+            "id": "destinationFile",
+            "type": "promptString",
+            "description": "Enter the destination file path for combining all functions",
+            "default": "${workspaceFolder}/combined_functions.ps1"
+        },
+        {
+            "id": "destinationFolder",
+            "type": "promptString",
+            "description": "Enter the destination folder path for exporting individual function files",
+            "default": "${workspaceFolder}/exported_functions"
+        },
+        {
+            "id": "folderPath",
+            "type": "promptString",
+            "description": "Enter the folder path containing the PowerShell files",
+            "default": "${workspaceFolder}/ps_functions"
         }
-
-
     ]
 }

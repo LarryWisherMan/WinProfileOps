@@ -6,7 +6,7 @@
     "powershell.codeFormatting.whitespaceBeforeOpenParen": true,
     "powershell.codeFormatting.whitespaceAroundOperator": true,
     "powershell.codeFormatting.whitespaceAfterSeparator": true,
-    "powershell.codeFormatting.ignoreOneLineBlock": false,
+    "powershell.codeFormatting.ignoreOneLineBlock": true,
     "powershell.codeFormatting.pipelineIndentationStyle": "IncreaseIndentationAfterEveryPipeline",
     "powershell.codeFormatting.preset": "Custom",
     "powershell.codeFormatting.alignPropertyValuePairs": true,
