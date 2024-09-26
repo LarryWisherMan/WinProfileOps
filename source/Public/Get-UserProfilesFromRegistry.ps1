@@ -31,7 +31,9 @@ function Get-UserProfilesFromRegistry
     [OutputType([PSCustomObject[]])]
     [CmdletBinding()]
     param (
-        [string] $ComputerName = $env:COMPUTERNAME
+        [string] $ComputerName = $env:COMPUTERNAME,
+        [string]$RegistryPath = $Env:WinProfileOps_RegistryPath,
+        [string]$RegistryHive = $env:WinProfileOps_RegistryHive
     )
 
     try
@@ -44,8 +46,8 @@ function Get-UserProfilesFromRegistry
         }
 
         # Get registry profiles and return them
-        $RegistryProfiles = Get-SIDProfileInfo -ComputerName $ComputerName -ErrorAction Stop
-        return $RegistryProfiles
+        Get-ProfileRegistryItems -ComputerName $ComputerName -RegistryPath $RegistryPath -RegistryHive $RegistryHive -WarningAction SilentlyContinue
+
     }
     catch
     {
