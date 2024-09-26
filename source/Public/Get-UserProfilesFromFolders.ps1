@@ -49,7 +49,10 @@ function Get-UserProfilesFromFolders
 
         # Get user folders and return them
         $UserFolders = Get-UserFolders -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -ErrorAction Stop
-        return $UserFolders
+
+
+        Get-ProcessedUserProfilesFromFolders -UserFolders $UserFolders -ComputerName $ComputerName
+
     }
     catch
     {
