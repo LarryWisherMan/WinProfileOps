@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Test-ComputerReachability Tests' -Tag 'Private' {
+Describe 'Test-ComputerReachability Tests' -Tags "Private", "Unit", "UserProfileAudit" {
 
     Context 'When checking computer reachability' {
 
