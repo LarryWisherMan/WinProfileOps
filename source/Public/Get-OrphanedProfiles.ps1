@@ -32,22 +32,32 @@ function Get-OrphanedProfiles
     [CmdletBinding()]
     [OutputType([UserProfile[]])]
     param (
+        [ValidateNotNullOrEmpty()]
         [string]$ComputerName = $env:COMPUTERNAME,
         [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath,
         [switch]$IgnoreSpecial
     )
 
-    # Call Invoke-UserProfileAudit to get all profiles
-    $allProfiles = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -IgnoreSpecial:$IgnoreSpecial
 
-    # Filter to return only orphaned profiles
-    $orphanedProfiles = $allProfiles | Where-Object { $_.IsOrphaned }
-
-    # Handle the case where no orphaned profiles are found
-    if (-not $orphanedProfiles)
+    try
     {
-        Write-Verbose "No orphaned profiles found on computer '$ComputerName'."
-        return @()  # Return an empty array
+        # Call Invoke-UserProfileAudit to get all profiles
+        $allProfiles = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -IgnoreSpecial:$IgnoreSpecial
+
+        # Filter to return only orphaned profiles
+        $orphanedProfiles = $allProfiles | Where-Object { $_.IsOrphaned }
+
+        # Handle the case where no orphaned profiles are found
+        if (-not $orphanedProfiles)
+        {
+            Write-Verbose "No orphaned profiles found on computer '$ComputerName'."
+            return @()  # Return an empty array
+        }
+    }
+    catch
+    {
+        Write-Error "An error occurred while retrieving orphaned profiles: $_"
+        return
     }
 
     return $orphanedProfiles

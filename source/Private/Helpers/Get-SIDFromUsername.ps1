@@ -50,6 +50,7 @@ function Get-SIDFromUsername
     }
     catch
     {
-        throw $_
+        Write-Warning "Could not resolve SID for username $Username."
+        return $null
     }
 }

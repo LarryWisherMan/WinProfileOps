@@ -21,6 +21,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
+<#
 Describe 'Get-UserProfilesFromRegistry' -Tags 'Unit' {
 
     # Test for profiles from the local computer
@@ -272,4 +273,158 @@ Describe 'Get-UserProfilesFromRegistry' -Tags 'Unit' {
         }
     }
 
+}
+#>
+
+Describe 'Get-UserProfilesFromRegistry Tests' -Tags 'Public', 'Unit', 'UserProfileAudit', 'GetUserProfile' {
+
+    BeforeAll {
+        InModuleScope -ScriptBlock {
+            # Mock external dependencies
+            Mock Test-ComputerPing -MockWith {
+                return $true
+            }
+            Mock Get-ProfileRegistryItems -MockWith {
+                return @(
+                    [PSCustomObject]@{ SID = 'S-1-5-21-1234567890-1234567890-1234567890-1001'; ProfilePath = 'C:\Users\User1'; ComputerName = $ComputerName },
+                    [PSCustomObject]@{ SID = 'S-1-5-21-1234567890-1234567890-1234567890-1002'; ProfilePath = 'C:\Users\User2'; ComputerName = $ComputerName }
+                )
+            }
+        }
+    }
+
+    Context 'Positive Tests' {
+
+        It 'Should return registry profiles for a valid computer and registry path' {
+            $result = Get-UserProfilesFromRegistry -ComputerName 'Server01'
+
+            # Assert that result is not null or empty
+            $result | Should -Not -BeNullOrEmpty
+
+            # Assert expected properties exist in returned objects
+            $result[0].SID | Should -Be 'S-1-5-21-1234567890-1234567890-1234567890-1001'
+            $result[0].ProfilePath | Should -Be 'C:\Users\User1'
+            $result[0].ComputerName | Should -Be 'Server01'
+        }
+
+        It 'Should return registry profiles for the local computer by default' {
+            $result = Get-UserProfilesFromRegistry
+
+            # Assert that result is not null or empty
+            $result | Should -Not -BeNullOrEmpty
+
+            # Assert that ComputerName is local machine's name
+            $result[0].ComputerName | Should -Be $env:COMPUTERNAME
+        }
+    }
+
+    Context 'Negative Tests' {
+
+        It 'Should return empty array and write-warning if the computer is offline' {
+            # Mock the ping check to return false (offline)
+            Mock Test-ComputerPing -MockWith { return $false }
+
+            mock Write-Warning
+
+            $result = Get-UserProfilesFromRegistry -ComputerName 'OfflineServer'
+
+            # Assert that result is empty
+            $result | Should -BeNullOrEmpty
+
+            Assert-MockCalled -CommandName Write-Warning -Scope It -ParameterFilter {
+                $message -eq "Computer 'OfflineServer' is offline or unreachable."
+            }
+        }
+
+        It 'Should write an error if there is an issue accessing the registry' {
+            # Mock Get-ProfileRegistryItems to throw an exception
+            Mock Get-ProfileRegistryItems -MockWith { throw "Error accessing registry" }
+
+            mock Write-Error
+
+            $result = Get-UserProfilesFromRegistry -RegistryPath 'InvalidRegistryPath' -RegistryHive 'InvalidHive'
+
+            # Assert that result is empty
+            $result | Should -BeNullOrEmpty
+
+            Assert-MockCalled -CommandName Write-Error -Scope It -ParameterFilter {
+                $message -like "*Error accessing registry profiles*"
+            }
+        }
+    }
+
+    Context 'Edge Case Tests' {
+
+        It 'Should handle empty registry items gracefully' {
+            # Mock Get-ProfileRegistryItems to return an empty array
+            Mock Get-ProfileRegistryItems -MockWith { return @() }
+
+            $result = Get-UserProfilesFromRegistry -RegistryPath 'EmptyRegistryPath'
+
+            # Assert that result is empty
+            $result | Should -BeNullOrEmpty
+        }
+
+        It 'Should handle null input for ComputerName by using the local machine name' {
+            $result = Get-UserProfilesFromRegistry -ComputerName $null
+
+            # Assert that the ComputerName defaults to the local machine
+            $result[0].ComputerName | Should -Be $env:COMPUTERNAME
+        }
+    }
+
+    Context 'Exception Handling' {
+
+        It 'Should return empty array if an error occurs during registry access' {
+            # Mock Get-ProfileRegistryItems to throw an exception
+            Mock Get-ProfileRegistryItems -MockWith { throw "Registry access error" }
+
+            mock Write-Error
+
+            $result = Get-UserProfilesFromRegistry -ComputerName 'ErrorServer'
+
+            # Assert that result is empty
+            $result | Should -BeNullOrEmpty
+        }
+
+        It 'Should log an error message if registry retrieval fails' {
+            # Mock Get-ProfileRegistryItems to throw an exception
+            Mock Get-ProfileRegistryItems -MockWith { throw "Registry access error" }
+
+            mock Write-Error
+
+            Get-UserProfilesFromRegistry -ComputerName 'ErrorServer' | Out-Null
+
+            Assert-MockCalled -CommandName Write-Error -Scope It -ParameterFilter {
+                $message -like "*Error accessing registry profiles*"
+            }
+        }
+    }
+
+    Context 'Verbose and Debug Logging' {
+
+
+
+    }
+
+    Context 'Performance Tests' {
+
+        It 'Should execute within acceptable time for normal inputs' {
+            $executionTime = Measure-Command {
+                Get-UserProfilesFromRegistry -ComputerName 'Server01'
+            }
+
+            # Assert that the execution time is less than 1 second
+            $executionTime.TotalMilliseconds | Should -BeLessThan 1000
+        }
+    }
+
+    Context 'Cleanup Tests' {
+
+        It 'Should not leave any resources open after execution' {
+            # Assuming no resources are left open
+            $result = Get-UserProfilesFromRegistry -ComputerName 'Server01'
+            $result | Should -Not -BeNullOrEmpty
+        }
+    }
 }

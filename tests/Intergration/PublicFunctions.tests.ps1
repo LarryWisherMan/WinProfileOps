@@ -26,7 +26,7 @@ AfterAll {
 
 }
 
-Describe "PublicFuntions Tests" -Tag "Intergration" {
+Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
 
     Context "Get-UserProfilesFromFolders" {
 

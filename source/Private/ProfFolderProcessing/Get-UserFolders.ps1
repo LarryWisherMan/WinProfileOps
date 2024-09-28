@@ -50,6 +50,7 @@ function Get-UserFolders
         [string]$ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath
     )
 
+
     $IsLocal = ($ComputerName -eq $env:COMPUTERNAME)
     $FolderPath = Get-DirectoryPath -BasePath $ProfileFolderPath -ComputerName $ComputerName -IsLocal $IsLocal
 

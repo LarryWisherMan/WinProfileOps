@@ -32,7 +32,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeTrue
+                $result.IsSpecial | Should -BeTrue
             }
         }
 
@@ -47,7 +47,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeFalse
+                $result.IsSpecial | Should -BeFalse
             }
         }
     }
@@ -65,7 +65,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeTrue
+                $result.IsSpecial | Should -BeTrue
             }
         }
 
@@ -80,7 +80,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeFalse
+                $result.IsSpecial | Should -BeFalse
             }
         }
     }
@@ -98,7 +98,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeTrue
+                $result.IsSpecial | Should -BeTrue
             }
         }
 
@@ -113,7 +113,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeFalse
+                $result.IsSpecial | Should -BeFalse
             }
         }
     }
@@ -131,7 +131,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeTrue
+                $result.IsSpecial | Should -BeTrue
             }
         }
 
@@ -146,7 +146,7 @@ Describe "Test-SpecialAccount" -Tag 'Private' {
                 $result = Test-SpecialAccount -FolderName $folderName -SID $sid -ProfilePath $profilePath
 
                 # Assert
-                $result | Should -BeFalse
+                $result.IsSpecial | Should -BeFalse
             }
         }
     }

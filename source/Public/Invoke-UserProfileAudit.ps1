@@ -64,8 +64,6 @@
     The function also ensures that computers are reachable before performing any profile audits, and will skip
     unreachable computers without further processing. Profiles can be retrieved for local or remote computers.
 #>
-
-
 function Invoke-UserProfileAudit
 {
     [OutputType([UserProfile[]])]

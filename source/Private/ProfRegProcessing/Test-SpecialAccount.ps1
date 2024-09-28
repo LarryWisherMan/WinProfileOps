@@ -1,23 +1,64 @@
 <#
 .SYNOPSIS
-    Tests if a profile is considered a special or default account.
+    Tests if a user profile is considered a special or default account.
 .DESCRIPTION
-    The Test-SpecialAccount function checks whether the profile is a special or default account by comparing the folder name, Security Identifier (SID), and profile path to predefined lists of ignored accounts, SIDs, and paths.
-    If the profile matches any of the predefined entries, it is considered a special account.
+    The Test-SpecialAccount function checks whether the profile is classified as a special or default account.
+    It compares the folder name, Security Identifier (SID), and profile path against predefined lists of ignored
+    accounts, SIDs, and paths that are typically used to identify system, default, or service accounts.
+    If the profile matches any entry from these predefined configurations, it is marked as a special account.
+
+    The function utilizes a configuration file (in .psd1 format) containing the lists of ignored accounts, SIDs,
+    and paths. If the profile matches any of the entries in the configuration file, the account is flagged as special.
+
 .PARAMETER FolderName
-    The name of the folder representing the profile being tested.
+    The name of the profile folder being tested (e.g., "DefaultAppPool", "JohnDoe").
 .PARAMETER SID
-    The Security Identifier (SID) of the profile being tested.
+    The Security Identifier (SID) of the profile being tested (e.g., "S-1-5-18", "S-1-5-21-123456789-1001").
 .PARAMETER ProfilePath
-    The file path of the profile being tested.
+    The file system path of the profile being tested (e.g., "C:\Users\JohnDoe" or "C:\WINDOWS\system32\config\systemprofile").
+.PARAMETER ConfigFilePath
+    The path to the configuration file (.psd1) that contains the lists of ignored accounts, SIDs, and paths.
+    Defaults to "$PSScriptRoot\Data\WinProfileOpsConfig.psd1".
+
+    The configuration file is expected to contain the following sections:
+    - IgnoredAccounts: An array of folder names representing special accounts.
+    - IgnoredSIDs: An array of SIDs representing special accounts.
+    - IgnoredPaths: An array of file path patterns (wildcards are supported) representing special profile paths.
+
 .EXAMPLE
     Test-SpecialAccount -FolderName "DefaultAppPool" -SID "S-1-5-18" -ProfilePath "C:\WINDOWS\system32\config\systemprofile"
-    Checks if the profile associated with the folder "DefaultAppPool", SID "S-1-5-18", and profile path "C:\WINDOWS\system32\config\systemprofile" is a special account.
+    Checks if the profile with folder name "DefaultAppPool", SID "S-1-5-18", and profile path "C:\WINDOWS\system32\config\systemprofile"
+    is classified as a special account based on predefined rules.
+
 .EXAMPLE
     Test-SpecialAccount -FolderName "JohnDoe" -SID "S-1-5-21-123456789-1001" -ProfilePath "C:\Users\JohnDoe"
-    Tests a non-special account, which does not match any predefined special accounts.
+    Tests whether the profile "JohnDoe" is a special account. Since it doesn't match any predefined special account rules,
+    it returns that the profile is not special.
+
+.EXAMPLE
+    Test-SpecialAccount -FolderName "Administrator" -SID "S-1-5-21-1234567890-1001" -ProfilePath "C:\Users\Administrator" `
+    -ConfigFilePath "C:\CustomConfig\SpecialAccounts.psd1"
+    Uses a custom configuration file to test whether the "Administrator" account is considered special.
+
 .NOTES
-    This function returns $true if the account is considered special, and $false otherwise.
+    This function returns a custom object that includes whether the account is special, along with the folder name,
+    SID, and profile path. The result can be used to filter out special accounts when performing user profile audits.
+
+    If the configuration file is not found or cannot be loaded, the function will throw an error.
+
+.OUTPUTS
+    PSCustomObject
+    Returns a custom object with the following properties:
+    - Success: Boolean value indicating whether the function executed successfully.
+    - IsSpecial: Boolean value indicating whether the profile is considered a special or default account.
+    - FolderName: The folder name of the tested profile.
+    - SID: The Security Identifier (SID) of the tested profile.
+    - ProfilePath: The profile's file path.
+    - Error: (Optional) Contains error message if an issue occurred during processing.
+
+.LINK
+    Get-Help about_Profiles
+    Get-Help about_Security_Identifiers
 #>
 function Test-SpecialAccount
 {

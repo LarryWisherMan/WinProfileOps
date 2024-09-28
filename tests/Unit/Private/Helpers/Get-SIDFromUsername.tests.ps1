@@ -98,7 +98,7 @@ Describe 'Get-SIDFromUsername' -Tags "Private", "Helpers" {
                 # Mock NTAccount to return null for SID
                 Mock -CommandName New-Object -MockWith {
                     New-MockObject -Type 'System.Security.Principal.NTAccount' -Methods @{
-                        Translate = { $null }
+                        Translate = { throw }
                     }
                 }
 
