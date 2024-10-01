@@ -65,80 +65,102 @@ function Join-UserProfiles
         throw "Both FolderProfiles and RegistryProfiles are empty. Cannot proceed."
     }
 
-    # Create a hashtable to store the merged profiles by SID and ProfilePath
+    # Create a hashtable to store the merged profiles by SID
     $MergedProfiles = @{}
 
-
-    # Process folder profiles first if they are not empty
+    # Process folder profiles if they exist
     if ($FolderProfiles.Count -ne 0)
     {
         foreach ($folderProfile in $FolderProfiles)
         {
-            $mergeKey = Get-MergeKey -SID $folderProfile.SID -ProfilePath $folderProfile.ProfilePath
+            $mergeKey = $folderProfile.SID  # Use SID as the merge key
 
             # Add folder profile data into the hashtable
             $MergedProfiles[$mergeKey] = [pscustomobject]@{
                 SID              = $folderProfile.SID
                 UserName         = $folderProfile.UserName
-                ProfilePath      = $folderProfile.ProfilePath
+                FolderPath       = $folderProfile.ProfilePath  # Capture FolderPath for folder profile
+                ProfilePath      = $null  # Keep ProfilePath empty until registry item is processed
                 LastLogonDate    = $folderProfile.LastLogonDate
                 HasUserFolder    = $folderProfile.HasUserFolder
                 ComputerName     = $folderProfile.ComputerName
                 IsSpecial        = $folderProfile.IsSpecial
                 Domain           = $folderProfile.Domain
-                HasRegistryEntry = $false  # Default to false, will be updated if registry entry exists
+                HasRegistryEntry = $false  # Will be updated if registry entry exists
                 ProfileState     = $null   # To be updated by registry profile if present
                 IsLoaded         = $null   # To be updated by registry profile if present
                 LastLogOffDate   = $null   # To be updated by registry profile if present
                 ErrorAccess      = $folderProfile.ErrorAccess
+                FolderMissing    = $false  # To track if folder is missing but exists in registry
             }
         }
     }
 
-    # Process registry profiles if they are not empty
-    if ($RegistryProfiles.Count -ne 0)
+    # Process registry profiles, even if FolderProfiles is empty
+    foreach ($registryProfile in $RegistryProfiles)
     {
-        foreach ($registryProfile in $RegistryProfiles)
-        {
-            $mergeKey = Get-MergeKey -SID $registryProfile.SID -ProfilePath $registryProfile.ProfilePath
+        $mergeKey = $registryProfile.SID  # Use SID as the merge key
 
-            if ($MergedProfiles.ContainsKey($mergeKey))
+        if ($MergedProfiles.ContainsKey($mergeKey))
+        {
+            # We found a matching SID, now merge the profile details
+
+            $MergedProfiles[$mergeKey].HasRegistryEntry = $true
+            $MergedProfiles[$mergeKey].ProfileState = $registryProfile.ProfileState
+            $MergedProfiles[$mergeKey].IsLoaded = $registryProfile.IsLoaded
+            $MergedProfiles[$mergeKey].LastLogOffDate = $registryProfile.LastLogOffDate
+            $MergedProfiles[$mergeKey].LastLogonDate = $registryProfile.LastLogonDate
+
+            # If ProfilePath is null in the registry, use FolderPath, otherwise use ProfilePath
+            if (-not $registryProfile.ProfilePath)
             {
-                # Override with registry-specific properties since registry takes priority
-                $MergedProfiles[$mergeKey].HasRegistryEntry = $true
-                $MergedProfiles[$mergeKey].ProfileState = $registryProfile.ProfileState
-                $MergedProfiles[$mergeKey].IsLoaded = $registryProfile.IsLoaded
-                $MergedProfiles[$mergeKey].LastLogOffDate = $registryProfile.LastLogOffDate
-                $MergedProfiles[$mergeKey].LastLogonDate = $registryProfile.LastLogonDate
-                $MergedProfiles[$mergeKey].ProfilePath = $registryProfile.ProfilePath
-                $MergedProfiles[$mergeKey].UserName = $registryProfile.UserName
-                $MergedProfiles[$mergeKey].Domain = $registryProfile.Domain
-                $MergedProfiles[$mergeKey].IsSpecial = $registryProfile.IsSpecial
-                $MergedProfiles[$mergeKey].HasUserFolder = $registryProfile.HasUserFolder
-                $MergedProfiles[$mergeKey].ErrorAccess = $registryProfile.ErrorAccess
+                # If ProfilePath is null, keep it null but retain the folder path info
+                $MergedProfiles[$mergeKey].ProfilePath = $null
             }
             else
             {
-                # Add the registry profile if it doesn't exist in the folder profiles
-                $MergedProfiles[$mergeKey] = [pscustomobject]@{
-                    SID              = $registryProfile.SID
-                    UserName         = $registryProfile.UserName
-                    ProfilePath      = $registryProfile.ProfilePath
-                    LastLogonDate    = $registryProfile.LastLogonDate
-                    HasUserFolder    = $registryProfile.HasUserFolder
-                    ComputerName     = $registryProfile.ComputerName
-                    IsSpecial        = $registryProfile.IsSpecial
-                    Domain           = $registryProfile.Domain
-                    HasRegistryEntry = $true
-                    ProfileState     = $registryProfile.ProfileState
-                    IsLoaded         = $registryProfile.IsLoaded
-                    LastLogOffDate   = $registryProfile.LastLogOffDate
-                    ErrorAccess      = $registryProfile.ErrorAccess
+                # If ProfilePath exists in the registry but the folder doesn't exist on the file system
+                if (-not $registryProfile.HasUserFolder)
+                {
+                    $MergedProfiles[$mergeKey].ProfilePath = $registryProfile.ProfilePath
+                    $MergedProfiles[$mergeKey].FolderMissing = $true  # Indicate that the folder is missing on disk
                 }
+                else
+                {
+                    # Use the valid ProfilePath from the registry
+                    $MergedProfiles[$mergeKey].ProfilePath = $registryProfile.ProfilePath
+                }
+            }
+
+            # Override additional details from the registry
+            $MergedProfiles[$mergeKey].UserName = $registryProfile.UserName
+            $MergedProfiles[$mergeKey].Domain = $registryProfile.Domain
+            $MergedProfiles[$mergeKey].IsSpecial = $registryProfile.IsSpecial
+            $MergedProfiles[$mergeKey].HasUserFolder = $MergedProfiles[$mergeKey].HasUserFolder
+        }
+        else
+        {
+            # Add registry profile directly if no folder profile match is found or FolderProfiles is empty
+            $MergedProfiles[$mergeKey] = [pscustomobject]@{
+                SID              = $registryProfile.SID
+                UserName         = $registryProfile.UserName
+                FolderPath       = $null  # No folder match found
+                ProfilePath      = $registryProfile.ProfilePath
+                LastLogonDate    = $registryProfile.LastLogonDate
+                HasUserFolder    = $registryProfile.HasUserFolder
+                ComputerName     = $registryProfile.ComputerName
+                IsSpecial        = $registryProfile.IsSpecial
+                Domain           = $registryProfile.Domain
+                HasRegistryEntry = $true
+                ProfileState     = $registryProfile.ProfileState
+                IsLoaded         = $registryProfile.IsLoaded
+                LastLogOffDate   = $registryProfile.LastLogOffDate
+                ErrorAccess      = $registryProfile.ErrorAccess
+                FolderMissing    = $false  # Assume folder is not missing if HasUserFolder is true
             }
         }
     }
 
     # Return the merged profiles as an array
-    return $MergedProfiles.Values | Sort-Object SID, ProfilePath
+    return $MergedProfiles.Values | Sort-Object SID
 }

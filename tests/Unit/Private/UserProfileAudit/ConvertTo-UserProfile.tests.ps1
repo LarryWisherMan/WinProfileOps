@@ -135,6 +135,7 @@ Describe 'ConvertTo-UserProfile Tests' -Tags "Private", "Unit", "UserProfileAudi
                         UserName      = 'testuser'
                         ProfilePath   = $null
                         HasUserFolder = $true
+                        HasRegistryEntry = $true
                     }
                 )
 

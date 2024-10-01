@@ -76,36 +76,55 @@ function ConvertTo-UserProfile
 
             switch ($true)
             {
+                # Case: Both ProfilePath and User Folder are missing
                 { -not $profileItem.ProfilePath -and -not $profileItem.HasUserFolder }
                 {
                     $IsOrphaned = $true
                     $OrphanReason = "MissingProfileImagePathAndFolder"
                     break
                 }
-                { -not $profileItem.ProfilePath }
+
+                # Case: ProfilePath is missing (but folder might exist)
+                { -not $profileItem.ProfilePath -and $profileItem.HasRegistryEntry }
                 {
                     $IsOrphaned = $true
                     $OrphanReason = "MissingProfileImagePath"
                     break
                 }
+
+                # Case: User folder is missing, but ProfilePath exists
                 { -not $profileItem.HasUserFolder }
                 {
                     $IsOrphaned = $true
                     $OrphanReason = "MissingFolder"
                     break
                 }
+
+                # Case: Registry entry exists but folder is missing (tracked by FolderMissing flag)
+                { $profileItem.HasRegistryEntry -and $profileItem.FolderMissing }
+                {
+                    $IsOrphaned = $true
+                    $OrphanReason = "FolderMissingOnDisk"
+                    break
+                }
+
+                # Case: Access denied for special account
                 { ($profileItem.HasUserFolder) -and $ErrorAccess -and ($profileItem.IsSpecial) }
                 {
                     $IsOrphaned = $false
                     $OrphanReason = "AccessDenied"
                     break
                 }
+
+                # Case: Registry entry is missing but it's not a special account
                 { -not $profileItem.HasRegistryEntry -and -not $profileItem.IsSpecial }
                 {
                     $IsOrphaned = $true
                     $OrphanReason = "MissingRegistryEntry"
                     break
                 }
+
+                # Default case
                 default
                 {
                     $IsOrphaned = $false
@@ -121,6 +140,7 @@ function ConvertTo-UserProfile
                 $profileItem.SID,
                 $profileItem.UserName,
                 $profileItem.ProfilePath,
+                $profileItem.FolderPath,
                 $profileItem.ProfileState,
                 $profileItem.HasRegistryEntry,
                 $profileItem.HasUserFolder,

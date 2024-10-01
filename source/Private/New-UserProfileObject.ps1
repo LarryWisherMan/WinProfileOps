@@ -15,6 +15,8 @@
     The username associated with the profile.
 .PARAMETER ProfilePath
     The file path to the user profile folder.
+.PARAMETER FolderPath
+    The file path to the user profile folder.
 .PARAMETER ProfileState
     The current state of the profile (e.g., Active, Inactive).
 .PARAMETER HasRegistryEntry
@@ -63,6 +65,7 @@ function New-UserProfileObject
         [string]$SID,
         [string]$UserName,
         [string]$ProfilePath,
+        [string]$FolderPath,
         [string]$ProfileState,
         [bool]$HasRegistryEntry,
         [bool]$HasUserFolder,
@@ -80,6 +83,7 @@ function New-UserProfileObject
         $SID,
         $UserName,
         $ProfilePath,
+        $FolderPath,
         $ProfileState,
         $HasRegistryEntry,
         $HasUserFolder,

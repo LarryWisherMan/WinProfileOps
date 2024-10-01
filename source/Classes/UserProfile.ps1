@@ -4,6 +4,7 @@ class UserProfile
     [string]$UserName
     [string]$SID
     [string]$ProfilePath
+    [string]$FolderPath
     [string]$ProfileState
     [bool]$HasRegistryEntry
     [bool]$HasUserFolder
@@ -20,6 +21,7 @@ class UserProfile
         [string]$SID,
         [string]$UserName,
         [string]$ProfilePath,
+        [string]$FolderPath,
         [string]$ProfileState,
         [bool]$HasRegistryEntry,
         [bool]$HasUserFolder,
@@ -37,6 +39,7 @@ class UserProfile
         $this.SID = $SID
         $this.UserName = $UserName
         $this.ProfilePath = $ProfilePath
+        $this.FolderPath = $FolderPath
         $this.ProfileState = $ProfileState
         $this.HasRegistryEntry = $HasRegistryEntry
         $this.HasUserFolder = $HasUserFolder

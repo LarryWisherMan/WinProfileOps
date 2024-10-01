@@ -110,6 +110,7 @@ Describe 'Join-UserProfiles Tests' -Tags "Private", "Unit", "UserProfileAudit" {
                         LastLogonDate    = (Get-Date).AddHours(-5)
                         LastLogOffDate   = (Get-Date).AddHours(-3)
                         HasRegistryEntry = $true
+                        HasUserFolder    = $false
                         ProfileState     = 0
                         IsLoaded         = $false
                         ComputerName     = 'Computer1'
