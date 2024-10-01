@@ -56,6 +56,13 @@ function Resolve-UserProfileForDeletion
         return New-ProfileDeletionResult -SID $SID -ProfilePath $null -DeletionSuccess $false -DeletionMessage $message -ComputerName $ComputerName
     }
 
+    if ($SelectedProfile.IsLoaded -eq $true)
+    {
+        Write-Warning "Profile is currently loaded and cannot be deleted: $SID on $ComputerName."
+        return New-ProfileDeletionResult -SID $SID -ProfilePath $SelectedProfile.ProfilePath -DeletionSuccess $false -DeletionMessage "Profile is currently loaded and cannot be deleted" -ComputerName $ComputerName
+
+    }
+
     # If profile is found, return the UserProfile object
     return $SelectedProfile
 }
