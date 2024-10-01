@@ -305,12 +305,16 @@ Describe "PublicFuntions Tests" -Tag "Intergration" {
 
             $check = $result[0]
 
-            $expectedLogonDate = [DateTime]::new(2024, 6, 14, 11, 14, 13, [DateTimeKind]::Local).ToString("o").Split(".")[0]
-            $expectedLogoffDate = [DateTime]::new(2024, 6, 21, 0, 58, 36, [DateTimeKind]::Local).ToString("o").Split(".")[0]
+            [uint64]$logonTimestamp = "0X{0:X8}{1:X8}" -f 31112838, 2837573704
+            $expectedLogonDate = [datetime]::FromFileTime($logonTimestamp)
+
+            [uint64]$logoffTimestamp = "0X{0:X8}{1:X8}" -f 31114160, 3518621425
+            $expectedLogoffDate = [datetime]::FromFileTime($logoffTimestamp)
+            
 
             # Fetch the actual date and convert to local time, removing milliseconds and time zone info
-            $actualLogOnDate = $Check.LastLogOnDate.ToLocalTime().ToString("o").Split(".")[0]
-            $actualLogOffDate = $Check.LastLogOffDate.ToLocalTime().ToString("o").Split(".")[0]
+            $actualLogOnDate = $Check.LastLogOnDate
+            $actualLogOffDate = $Check.LastLogOffDate
 
             $check.Sid | Should -Be "S-1-5-21-1234567890-1"
             $check.ProfilePath | Should -Be "$ProfilePath\User1"
