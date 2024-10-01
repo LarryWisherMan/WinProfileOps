@@ -81,7 +81,7 @@ function Get-ProcessedUserProfilesFromFolders
         # Try to resolve SID
         try
         {
-            $SID = Resolve-UsernamesToSIDs -Usernames $userName -WarningAction SilentlyContinue
+            $SID = Resolve-UsernamesToSIDs -Usernames $userName -ComputerName $ComputerName
         }
         catch
         {

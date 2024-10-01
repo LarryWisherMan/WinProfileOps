@@ -53,7 +53,7 @@ function Resolve-UsernamesToSIDs
         }
         else
         {
-            Write-Warning "Could not resolve SID for username $Username."
+            Write-Verbose "Could not resolve SID for username $Username."
         }
     }
 
