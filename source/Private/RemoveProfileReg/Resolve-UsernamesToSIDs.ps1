@@ -27,14 +27,24 @@ function Resolve-UsernamesToSIDs
     )
 
     $SIDs = @()
+
     foreach ($Username in $Usernames)
     {
-        $SID = Get-SIDFromUsername -Username $Username
-        if ($SID)
+        try
+        {
+            $SID = Get-SIDFromUsername -Username $Username
+        }
+        catch {}
+        if ($Null -ne $SID -and $Null -ne $SID)
         {
             $SIDs += $SID
         }
+        else
+        {
+            Write-Warning "Could not resolve SID for username $Username."
+        }
 
     }
+
     return $SIDs
 }
