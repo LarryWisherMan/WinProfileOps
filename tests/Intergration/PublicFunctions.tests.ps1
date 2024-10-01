@@ -26,7 +26,7 @@ AfterAll {
 
 }
 
-Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
+Describe "PublicFuntions Tests" -Tag "Intergration" {
 
     Context "Get-UserProfilesFromFolders" {
 
@@ -38,6 +38,88 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
                 $FolderName = $_
                 mkdir "$TestDrive\Users\$folderName"
             }
+
+            Mock Get-SIDFromUsername {
+                param($Username)
+                switch ($Username)
+                {
+                    'user1'
+                    {
+                        return "S-1-5-21-1234567890-1"
+                    }
+                    'user2'
+                    {
+                        return "S-1-5-21-1234567890-2"
+                    }
+                    'user3'
+                    {
+                        return "S-1-5-21-1234567890-3"
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserAccountFromSID {
+                param($SID)
+                switch ($SID)
+                {
+                    'S-1-5-21-1234567890-1'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-1"
+                            Domain   = "Domain"
+                            Username = "User1"
+                        }
+                    }
+                    'S-1-5-21-1234567890-2'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-2"
+                            Domain   = "Domain"
+                            Username = "User2"
+                        }
+                    }
+                    'S-1-5-21-1234567890-3'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-3"
+                            Domain   = "Domain"
+                            Username = "User3"
+                        }
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserProfileLastUseTimeFromDat {
+                param($ComputerName, $SystemDrive)
+
+                $ProfileList = @(
+
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User1"
+                        LastLogon    = (Get-Date).AddDays(-1)
+                        UserPath     = "$TestDrive\Users\User1"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User2"
+                        LastLogon    = (Get-Date).AddDays(-2)
+                        UserPath     = "$TestDrive\Users\User2"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User3"
+                        LastLogon    = (Get-Date).AddDays(-3)
+                        UserPath     = "$TestDrive\Users\User3"
+                    }
+                )
+
+                return $ProfileList
+            } -ModuleName $script:dscModuleName
+
         }
 
         AfterEach {
@@ -59,9 +141,21 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
 
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 3
-            $result[0].ProfilePath | Should -Be "$ProfilePath\User1"
+
+            $Check = $result[0]
+
+            $Check.Username | Should -Be "User1"
+            $Check.ComputerName | Should -Be $ComputerName
+            $Check.IsSpecial | Should -Be $false
+            $Check.LastLogon | Should -BeLessThan (Get-Date)
+            $Check.SID | Should -Be "S-1-5-21-1234567890-1"
+            $Check.ProfilePath | Should -Be "$ProfilePath\User1"
+            $Check.ExistsInRegistry | Should -Be $false
+            $check.HasUserFolder | Should -Be $true
+            $Check.Domain | Should -Be "Domain"
         }
     }
+
 
     Context "Get-UserProfilesFromRegistry" {
 
@@ -119,7 +213,65 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
                 }
 
                 Set-ItemProperty -Path $RegistryItemPath -Name ProfileImagePath -Value "$TestDrive\Users\$FolderName"
+                Set-ItemProperty -Path $RegistryItemPath -Name State -Value 0 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeLow -Value 2837573704 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeHigh -Value 31112838 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeLow -Value 3518621425 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeHigh -Value 31114160 -Type DWord
+
             }
+
+            Mock Get-SIDFromUsername {
+                param($Username)
+                switch ($Username)
+                {
+                    'user1'
+                    {
+                        return "S-1-5-21-1234567890-1"
+                    }
+                    'user2'
+                    {
+                        return "S-1-5-21-1234567890-2"
+                    }
+                    'user3'
+                    {
+                        return "S-1-5-21-1234567890-3"
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+
+            Mock Get-UserAccountFromSID {
+                param($SID)
+                switch ($SID)
+                {
+                    'S-1-5-21-1234567890-1'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-1"
+                            Domain   = "Domain"
+                            Username = "User1"
+                        }
+                    }
+                    'S-1-5-21-1234567890-2'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-2"
+                            Domain   = "Domain"
+                            Username = "User2"
+                        }
+                    }
+                    'S-1-5-21-1234567890-3'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-3"
+                            Domain   = "Domain"
+                            Username = "User3"
+                        }
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
         }
 
 
@@ -150,6 +302,30 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 3
             $result[0].ProfilePath | Should -Be "$ProfilePath\User1"
+
+            $check = $result[0]
+
+            $expectedLogonDate = (Get-Date "6/14/2024 11:14:13 AM").ToUniversalTime().ToString("o").Split(".")[0]
+            $expectedLogoffDate = (Get-Date "6/21/2024 12:58:36 AM").ToUniversalTime().ToString("o").Split(".")[0]
+
+            # Fetch the actual date and remove milliseconds and time zone info
+            $actualLogOnDate = $Check.LastLogOnDate.ToUniversalTime().ToString("o").Split(".")[0]
+            $actualLogOffDate = $Check.LastLogOffDate.ToUniversalTime().ToString("o").Split(".")[0]
+
+            $check.Sid | Should -Be "S-1-5-21-1234567890-1"
+            $check.ProfilePath | Should -Be "$ProfilePath\User1"
+            $check.ProfileState | Should -Be "StandardLocal"
+            $check.ComputerName | Should -Be $ComputerName
+            $check.HasRegistryEntry | Should -Be $true
+            $Check.Isloaded | Should -Be $false
+            $check.HasUserFolder | Should -Be $true
+            $Check.UserName | Should -Be "User1"
+            $Check.Domain | Should -Be "Domain"
+            $check.IsSpecial | Should -Be $false
+            $actualLogOnDate | Should -Be $expectedLogonDate
+            $actualLogOffDate | Should -Be $expectedLogoffDate
+            $check.ErrorAccess | Should -Be $false
+            $check.ErrorAccessMessage | Should -BeNullOrEmpty
         }
 
 
@@ -165,13 +341,16 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             # Validate the result
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 3
+
+            $check = $result[0]
+
             $result[0].profilePath | Should -BeNullOrEmpty
-            $result[0].ExistsInRegistry | Should -Be $true
+            $result[0].HasRegistryEntry | Should -Be $true
         }
 
     }
 
-    Context "Ivoke-UserProfileAudit" {
+    Context "Invoke-UserProfileAudit" {
 
         BeforeEach {
             # Ensure clean-up of TestDrive before creating folders
@@ -227,7 +406,93 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
                 }
 
                 Set-ItemProperty -Path $RegistryItemPath -Name ProfileImagePath -Value "$TestDrive\Users\$FolderName"
+                Set-ItemProperty -Path $RegistryItemPath -Name State -Value 0 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeLow -Value 2837573704 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeHigh -Value 31112838 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeLow -Value 3518621425 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeHigh -Value 31114160 -Type DWord
             }
+
+            Mock Get-SIDFromUsername {
+                param($Username)
+                switch ($Username)
+                {
+                    'user1'
+                    {
+                        return "S-1-5-21-1234567890-1"
+                    }
+                    'user2'
+                    {
+                        return "S-1-5-21-1234567890-2"
+                    }
+                    'user3'
+                    {
+                        return "S-1-5-21-1234567890-3"
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserAccountFromSID {
+                param($SID)
+                switch ($SID)
+                {
+                    'S-1-5-21-1234567890-1'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-1"
+                            Domain   = "Domain"
+                            Username = "User1"
+                        }
+                    }
+                    'S-1-5-21-1234567890-2'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-2"
+                            Domain   = "Domain"
+                            Username = "User2"
+                        }
+                    }
+                    'S-1-5-21-1234567890-3'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-3"
+                            Domain   = "Domain"
+                            Username = "User3"
+                        }
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserProfileLastUseTimeFromDat {
+                param($ComputerName, $SystemDrive)
+
+                $ProfileList = @(
+
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User1"
+                        LastLogon    = (Get-Date).AddDays(-1)
+                        UserPath     = "$TestDrive\Users\User1"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User2"
+                        LastLogon    = (Get-Date).AddDays(-2)
+                        UserPath     = "$TestDrive\Users\User2"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User3"
+                        LastLogon    = (Get-Date).AddDays(-3)
+                        UserPath     = "$TestDrive\Users\User3"
+                    }
+                )
+
+                return $ProfileList
+            } -ModuleName $script:dscModuleName
         }
 
 
@@ -274,8 +539,9 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             $result.Count | Should -Be 3
             $result[0].OrphanReason | Should -Be "MissingFolder"
             $result[0].IsOrphaned | Should -Be $true
+            $result[0].FolderPath | Should -BeNullOrEmpty
+            $result[0].ProfilePath | should -Not -BeNullOrEmpty
         }
-
 
         It "It should return 1 orphaned due to missing registry entry" {
             $ComputerName = $Env:COMPUTERNAME
@@ -285,7 +551,8 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             # Call the function to test (this is the function that fetches profiles from the registry)
             $result = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $profilePath
 
-            $selected = $result | Where-Object { $_.ProfilePath -match "User1" }
+            $selected = $result | Where-Object { $_.UserName -match "User1" }
+
             # Validate the result
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 3
@@ -293,7 +560,7 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             $selected.IsOrphaned | Should -Be $true
         }
 
-        It "It should return 2 orphaned due to missing ProfileImagePath in Registry" {
+        It "It should return 1 orphaned due to missing ProfileImagePath in Registry" {
             $ComputerName = $Env:COMPUTERNAME
             $profilePath = "$TestDrive\Users"
 
@@ -307,12 +574,35 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
 
             # Validate the result
             $result | Should -Not -BeNullOrEmpty
-            $result.Count | Should -Be 4
-            $Orphaned.Count | Should -Be 2
+            $result.Count | Should -Be 3
+            $Orphaned.Count | Should -Be 1
             $Orphaned[0].OrphanReason | Should -Be "MissingProfileImagePath"
-            $Orphaned[1].OrphanReason | Should -Be "MissingRegistryEntry"
 
         }
+
+        It "It should return 1 orphaned due to missing MissingProfileImagePathAndFolder in Registry" {
+            $ComputerName = $Env:COMPUTERNAME
+            $profilePath = "$TestDrive\Users"
+
+            $null = Set-ItemProperty -Path "HKCU:\Software\Pester\ProfileList\S-1-5-21-1234567890-1" -Name ProfileImagePath -Value ""
+            $null = Remove-Item "$profilePath\User1" -Recurse -Force
+
+            # Call the function to test (this is the function that fetches profiles from the registry)
+            $result = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $profilePath
+
+
+            $Orphaned = $result | Where-Object { $_.IsOrphaned -eq $true }
+
+            # Validate the result
+            $result | Should -Not -BeNullOrEmpty
+            $result.Count | Should -Be 3
+            $Orphaned.Count | Should -Be 1
+            $Orphaned[0].OrphanReason | Should -Be "MissingProfileImagePathAndFolder"
+
+        }
+
+
+
     }
 
     Context "Get-OrphanedProfiles" {
@@ -371,7 +661,93 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
                 }
 
                 Set-ItemProperty -Path $RegistryItemPath -Name ProfileImagePath -Value "$TestDrive\Users\$FolderName"
+                Set-ItemProperty -Path $RegistryItemPath -Name State -Value 0 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeLow -Value 2837573704 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeHigh -Value 31112838 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeLow -Value 3518621425 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeHigh -Value 31114160 -Type DWord
             }
+
+            Mock Get-SIDFromUsername {
+                param($Username)
+                switch ($Username)
+                {
+                    'user1'
+                    {
+                        return "S-1-5-21-1234567890-1"
+                    }
+                    'user2'
+                    {
+                        return "S-1-5-21-1234567890-2"
+                    }
+                    'user3'
+                    {
+                        return "S-1-5-21-1234567890-3"
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserAccountFromSID {
+                param($SID)
+                switch ($SID)
+                {
+                    'S-1-5-21-1234567890-1'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-1"
+                            Domain   = "Domain"
+                            Username = "User1"
+                        }
+                    }
+                    'S-1-5-21-1234567890-2'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-2"
+                            Domain   = "Domain"
+                            Username = "User2"
+                        }
+                    }
+                    'S-1-5-21-1234567890-3'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-3"
+                            Domain   = "Domain"
+                            Username = "User3"
+                        }
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserProfileLastUseTimeFromDat {
+                param($ComputerName, $SystemDrive)
+
+                $ProfileList = @(
+
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User1"
+                        LastLogon    = (Get-Date).AddDays(-1)
+                        UserPath     = "$TestDrive\Users\User1"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User2"
+                        LastLogon    = (Get-Date).AddDays(-2)
+                        UserPath     = "$TestDrive\Users\User2"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User3"
+                        LastLogon    = (Get-Date).AddDays(-3)
+                        UserPath     = "$TestDrive\Users\User3"
+                    }
+                )
+
+                return $ProfileList
+            } -ModuleName $script:dscModuleName
         }
 
         AfterEach {
@@ -446,15 +822,16 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             $result | Should -Not -BeNullOrEmpty
             $result.Count | Should -Be 2
 
-            $result[0].OrphanReason | Should -Be "MissingFolder"
+            $result[0].OrphanReason | Should -Be "MissingRegistryEntry"
             $result[0].IsOrphaned | Should -Be $true
 
-            $result[1].OrphanReason | Should -Be "MissingRegistryEntry"
+            $result[1].OrphanReason | Should -Be "MissingFolder"
             $result[1].IsOrphaned | Should -Be $true
 
         }
 
     }
+
 
     Context "Remove-UserProfilesFromRegistry" {
 
@@ -499,8 +876,8 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             $env:WinProfileOps_RegistryPath = "Software\Pester\ProfileList"
             $env:WinProfileOps_RegistryHive = [Microsoft.Win32.RegistryHive]::CurrentUser
             $env:WinProfileOps_ProfileFolderPath = "$TestDrive\Users"
+            $env:WinProfileOps_RegBackUpDirectory = "$TestDrive\RegBackUp"
 
-            # Create registry items for each mock user
             $MockUsers | ForEach-Object {
                 $SID = $_.SID
                 $FolderName = $_.Foldername
@@ -513,7 +890,93 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
                 }
 
                 Set-ItemProperty -Path $RegistryItemPath -Name ProfileImagePath -Value "$TestDrive\Users\$FolderName"
+                Set-ItemProperty -Path $RegistryItemPath -Name State -Value 0 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeLow -Value 2837573704 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileLoadTimeHigh -Value 31112838 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeLow -Value 3518621425 -Type DWord
+                Set-ItemProperty -Path $RegistryItemPath -Name LocalProfileUnloadTimeHigh -Value 31114160 -Type DWord
             }
+
+            Mock Get-SIDFromUsername {
+                param($Username)
+                switch ($Username)
+                {
+                    'user1'
+                    {
+                        return "S-1-5-21-1234567890-1"
+                    }
+                    'user2'
+                    {
+                        return "S-1-5-21-1234567890-2"
+                    }
+                    'user3'
+                    {
+                        return "S-1-5-21-1234567890-3"
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserAccountFromSID {
+                param($SID)
+                switch ($SID)
+                {
+                    'S-1-5-21-1234567890-1'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-1"
+                            Domain   = "Domain"
+                            Username = "User1"
+                        }
+                    }
+                    'S-1-5-21-1234567890-2'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-2"
+                            Domain   = "Domain"
+                            Username = "User2"
+                        }
+                    }
+                    'S-1-5-21-1234567890-3'
+                    {
+                        return [PSCustomObject]@{
+                            SID      = "S-1-5-21-1234567890-3"
+                            Domain   = "Domain"
+                            Username = "User3"
+                        }
+                    }
+                }
+            } -ModuleName $script:dscModuleName
+
+            Mock Get-UserProfileLastUseTimeFromDat {
+                param($ComputerName, $SystemDrive)
+
+                $ProfileList = @(
+
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User1"
+                        LastLogon    = (Get-Date).AddDays(-1)
+                        UserPath     = "$TestDrive\Users\User1"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User2"
+                        LastLogon    = (Get-Date).AddDays(-2)
+                        UserPath     = "$TestDrive\Users\User2"
+                    },
+                    [PSCustomObject]@{
+                        Success      = $true
+                        ComputerName = $ComputerName
+                        Username     = "User3"
+                        LastLogon    = (Get-Date).AddDays(-3)
+                        UserPath     = "$TestDrive\Users\User3"
+                    }
+                )
+
+                return $ProfileList
+            } -ModuleName $script:dscModuleName
         }
 
         AfterEach {
@@ -532,6 +995,7 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             Remove-Item -Path Env:WinProfileOps_RegistryPath -ErrorAction SilentlyContinue
             Remove-Item -Path Env:WinProfileOps_RegistryHive -ErrorAction SilentlyContinue
             Remove-Item -Path Env:WinProfileOps_ProfileFolderPath -ErrorAction SilentlyContinue
+            Remove-Item -Path Env:WinProfileOps_RegBackUpDirectory -ErrorAction SilentlyContinue
         }
 
         It "Should remove the specified profiles from the registry" {
@@ -548,6 +1012,13 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             # Validate that the profile was removed from the registry
             (Test-Path "HKCU:\Software\Pester\ProfileList\$testSID") | Should -Be $false
             $result.DeletionSuccess | Should -Be $true
+
+            # Validate the backup file was created
+            $backupFile = Get-ChildItem $env:WinProfileOps_RegBackUpDirectory
+
+            $backupFile | Should -Not -BeNullOrEmpty
+            $backupContent = Get-Content -path $backupFile.FullName -raw | ConvertFrom-Json | Where-Object { $_.RegistryPath -match $testSID } | sort BackupDate -Descending | Select -First 1
+            $backupContent.RegistryPath | Should -Be "HKEY_CURRENT_USER\Software\Pester\ProfileList\$testSID"
         }
 
         It "Should not remove profiles in AuditOnly mode" {
@@ -572,12 +1043,18 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             $profilePath = "$TestDrive\Users"
             $ComputerName = $Env:COMPUTERNAME
 
+            Mock Write-Warning
+
             # Call Remove-UserProfilesFromRegistry on a missing profile
             $result = Remove-UserProfilesFromRegistry -SIDs $missingSID -Force -Confirm:$false
 
             # Validate the result should indicate failure due to missing registry entry
             $result.DeletionSuccess | Should -Be $false
             $result.DeletionMessage | Should -Be "Profile not found"
+
+            Assert-MockCalled -CommandName Write-Warning -Times 1 -ParameterFilter {
+                $message -eq "Profile not found for SID: $missingSID on $ComputerName."
+            }
         }
 
         It "Should remove multiple profiles from the registry" {
@@ -599,22 +1076,6 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
             }
 
             $result.DeletionSuccess | ForEach-Object { $_ | Should -Be $true }
-        }
-
-        It "Should handle profiles with no registry entries" {
-            $testSID = "S-1-5-21-1234567890-1"
-            $profilePath = "$TestDrive\Users"
-            $ComputerName = $Env:COMPUTERNAME
-
-            # Remove registry entry for the test profile
-            Remove-Item "HKCU:\Software\Pester\ProfileList\$testSID" -Recurse -Force
-
-            # Call Remove-UserProfilesFromRegistry
-            $result = Remove-UserProfilesFromRegistry -SIDs $testSID -Force -Confirm:$false
-
-            # Validate result indicates no registry entry found
-            $result.DeletionSuccess | Should -Be $false
-            $result.DeletionMessage | Should -Be "Profile not found"
         }
 
         It "Should handle profiles with missing folders" {
@@ -656,7 +1117,7 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
 
         It "Should handel UserProfile Types from the Pipeline" {
             $computerName = $Env:COMPUTERNAME
-            $userProfileAudit = Invoke-UserProfileAudit -ProfileFolderPath $env:WinProfileOps_ProfileFolderPath -IgnoreSpecial
+            $userProfileAudit = Invoke-UserProfileAudit -IgnoreSpecial
 
             if ($userProfileAudit.count -eq 3)
             {
@@ -671,5 +1132,89 @@ Describe "PublicFuntions Tests" -Tag "Intergration" -Skip {
 
         }
 
+        It "Should not Delete Loaded Profiles" {
+
+            InModuleScope -ScriptBlock {
+                Mock Get-ProfileRegistryItems {
+                    param($ComputerName)
+                    return [pscustomobject]@{
+                        SID              = "S-1-5-21-1234567890-1"
+                        ProfilePath      = "$TestDrive\Users\User1"
+                        ProfileState     = "StandardLocal"
+                        ComputerName     = $ComputerName
+                        HasRegistryEntry = $true
+                        IsLoaded         = $true
+                        HasUserFolder    = $true
+                        UserName         = "User1"
+                        Domain           = "Domain"
+                        IsSpecial        = $false
+                        LastLogOnDate    = (Get-Date).AddDays(-1)
+                        LastLogOffDate   = (Get-Date).AddDays(-1)
+                        ErrorAccess      = $false
+                        ErrorCapture     = $null
+                    }
+                } -ModuleName $script:dscModuleName
+            }
+
+            mock Write-Warning
+
+            $testSID = "S-1-5-21-1234567890-1"
+            $result = Remove-UserProfilesFromRegistry -SIDs $testSID -Force -Confirm:$false
+
+            $result.DeletionSuccess | Should -Be $false
+            $result.DeletionMessage | Should -Be "Profile is currently loaded and cannot be deleted"
+
+            Assert-MockCalled -CommandName Write-Warning -Times 1 -ParameterFilter {
+                $message -eq "Profile is currently loaded and cannot be deleted: $testSID on $Env:ComputerName."
+
+
+            }
+
+        }
+
+
+        It "Should not Delete Special Profiles" {
+
+            InModuleScope -ScriptBlock {
+                Mock Get-ProfileRegistryItems {
+                    param($ComputerName)
+                    return [pscustomobject]@{
+                        SID              = "S-1-5-21-1234567890-1"
+                        ProfilePath      = "$TestDrive\Users\User1"
+                        ProfileState     = "StandardLocal"
+                        ComputerName     = $ComputerName
+                        HasRegistryEntry = $true
+                        IsLoaded         = $false
+                        HasUserFolder    = $true
+                        UserName         = "User1"
+                        Domain           = "Domain"
+                        IsSpecial        = $True
+                        LastLogOnDate    = (Get-Date).AddDays(-1)
+                        LastLogOffDate   = (Get-Date).AddDays(-1)
+                        ErrorAccess      = $false
+                        ErrorCapture     = $null
+                    }
+                } -ModuleName $script:dscModuleName
+            }
+
+            mock Write-Warning
+
+            $testSID = "S-1-5-21-1234567890-1"
+            $result = Remove-UserProfilesFromRegistry -SIDs $testSID -Force -Confirm:$false
+
+            $result.DeletionSuccess | Should -Be $false
+            $result.DeletionMessage | Should -Be "Profile not found"
+
+
+            Assert-MockCalled -CommandName Write-Warning -Times 1 -ParameterFilter {
+                $message -eq "Profile not found for SID: $testSID on $Env:ComputerName."
+
+
+            }
+
+        }
+
+
     }
+
 }

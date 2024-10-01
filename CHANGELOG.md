@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed bug from `Process-RegistryProfiles` regarding populating the `FolderName`
 variable.
+- Refactored model to create a UserProfile object to better handel different removal
+scenarios.
 
 ### Added
 
