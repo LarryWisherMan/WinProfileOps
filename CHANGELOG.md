@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 variable.
 - Refactored model to create a UserProfile object to better handel different removal
 scenarios.
+- Fixed bug in `Join-UserProfiles` regarding User Folders with no resolvable SIDS
 
 ### Added
 

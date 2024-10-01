@@ -67,13 +67,21 @@ function Join-UserProfiles
 
     # Create a hashtable to store the merged profiles by SID
     $MergedProfiles = @{}
+    $unresolvedIndex = 1  # Counter for unresolved profiles
 
     # Process folder profiles if they exist
     if ($FolderProfiles.Count -ne 0)
     {
         foreach ($folderProfile in $FolderProfiles)
         {
-            $mergeKey = $folderProfile.SID  # Use SID as the merge key
+            $mergeKey = $folderProfile.SID
+
+            # Use a placeholder key if SID is missing
+            if (-not $mergeKey)
+            {
+                $mergeKey = "UnknownSID-$unresolvedIndex"
+                $unresolvedIndex++
+            }
 
             # Add folder profile data into the hashtable
             $MergedProfiles[$mergeKey] = [pscustomobject]@{
@@ -92,6 +100,7 @@ function Join-UserProfiles
                 LastLogOffDate   = $null   # To be updated by registry profile if present
                 ErrorAccess      = $folderProfile.ErrorAccess
                 FolderMissing    = $false  # To track if folder is missing but exists in registry
+                UnresolvedSID    = (-not $folderProfile.SID)  # Flag if SID is unresolved
             }
         }
     }
@@ -99,12 +108,18 @@ function Join-UserProfiles
     # Process registry profiles, even if FolderProfiles is empty
     foreach ($registryProfile in $RegistryProfiles)
     {
-        $mergeKey = $registryProfile.SID  # Use SID as the merge key
+        $mergeKey = $registryProfile.SID
+
+        # Use a placeholder key if SID is missing
+        if (-not $mergeKey)
+        {
+            $mergeKey = "UnknownSID-$unresolvedIndex"
+            $unresolvedIndex++
+        }
 
         if ($MergedProfiles.ContainsKey($mergeKey))
         {
             # We found a matching SID, now merge the profile details
-
             $MergedProfiles[$mergeKey].HasRegistryEntry = $true
             $MergedProfiles[$mergeKey].ProfileState = $registryProfile.ProfileState
             $MergedProfiles[$mergeKey].IsLoaded = $registryProfile.IsLoaded
@@ -114,20 +129,17 @@ function Join-UserProfiles
             # If ProfilePath is null in the registry, use FolderPath, otherwise use ProfilePath
             if (-not $registryProfile.ProfilePath)
             {
-                # If ProfilePath is null, keep it null but retain the folder path info
                 $MergedProfiles[$mergeKey].ProfilePath = $null
             }
             else
             {
-                # If ProfilePath exists in the registry but the folder doesn't exist on the file system
                 if (-not $registryProfile.HasUserFolder)
                 {
                     $MergedProfiles[$mergeKey].ProfilePath = $registryProfile.ProfilePath
-                    $MergedProfiles[$mergeKey].FolderMissing = $true  # Indicate that the folder is missing on disk
+                    $MergedProfiles[$mergeKey].FolderMissing = $true
                 }
                 else
                 {
-                    # Use the valid ProfilePath from the registry
                     $MergedProfiles[$mergeKey].ProfilePath = $registryProfile.ProfilePath
                 }
             }
@@ -137,6 +149,7 @@ function Join-UserProfiles
             $MergedProfiles[$mergeKey].Domain = $registryProfile.Domain
             $MergedProfiles[$mergeKey].IsSpecial = $registryProfile.IsSpecial
             $MergedProfiles[$mergeKey].HasUserFolder = $MergedProfiles[$mergeKey].HasUserFolder
+            $MergedProfiles[$mergeKey].UnresolvedSID = (-not $registryProfile.SID)
         }
         else
         {
@@ -157,6 +170,7 @@ function Join-UserProfiles
                 LastLogOffDate   = $registryProfile.LastLogOffDate
                 ErrorAccess      = $registryProfile.ErrorAccess
                 FolderMissing    = $false  # Assume folder is not missing if HasUserFolder is true
+                UnresolvedSID    = (-not $registryProfile.SID)  # Flag if SID is unresolved
             }
         }
     }
