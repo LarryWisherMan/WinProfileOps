@@ -19,25 +19,16 @@ AfterAll {
 
 Describe 'Get-UserProfileLastUseTimeFromDat Tests' -Tags "Private", "Unit", "ProfFolderProcessing" {
 
-    BeforeAll {
-        InModuleScope -Scriptblock {
-
-            # Mocking external dependencies
-            Mock Get-DirectoryPath -MockWith {
-                "C:\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat"
-            }
-
-            Mock Get-ChildItem -MockWith {
-                @([pscustomobject]@{FullName = 'C:\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat'; LastWriteTime = (Get-Date).AddDays(-1) },
-                    [pscustomobject]@{FullName = 'C:\Users\AdminUser\AppData\Local\Microsoft\Windows\UsrClass.dat'; LastWriteTime = (Get-Date).AddDays(-5) })
-            }
-        }
-    }
-
     Context 'Positive Tests' {
         It 'Should retrieve UsrClass.dat information from local computer' {
             InModuleScope -Scriptblock {
-                $result = Get-UserProfileLastUseTimeFromDat -ComputerName 'TestComputer'
+
+                Mock Get-ChildItem -MockWith {
+                    @([pscustomobject]@{FullName = 'C:\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat'; LastWriteTime = (Get-Date).AddDays(-1) },
+                        [pscustomobject]@{FullName = 'C:\Users\AdminUser\AppData\Local\Microsoft\Windows\UsrClass.dat'; LastWriteTime = (Get-Date).AddDays(-5) })
+                }
+
+                $result = Get-UserProfileLastUseTimeFromDat
 
                 $result | Should -Not -BeNullOrEmpty
                 $result.UserPath | Should -Contain 'C:\Users\TestUser'
@@ -48,6 +39,12 @@ Describe 'Get-UserProfileLastUseTimeFromDat Tests' -Tags "Private", "Unit", "Pro
 
         It 'Should retrieve UsrClass.dat information from remote computer' {
             InModuleScope -Scriptblock {
+
+                Mock Get-ChildItem -MockWith {
+                    @([pscustomobject]@{FullName = '\\RemoteComputer\C$\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat'; LastWriteTime = (Get-Date).AddDays(-1) },
+                        [pscustomobject]@{FullName = '\\RemoteComputer\C$\Users\AdminUser\AppData\Local\Microsoft\Windows\UsrClass.dat'; LastWriteTime = (Get-Date).AddDays(-5) })
+                }
+
                 $result = Get-UserProfileLastUseTimeFromDat -ComputerName 'RemoteComputer'
 
                 $result | Should -Not -BeNullOrEmpty
@@ -79,9 +76,13 @@ Describe 'Get-UserProfileLastUseTimeFromDat Tests' -Tags "Private", "Unit", "Pro
             InModuleScope -Scriptblock {
                 Mock Get-ChildItem -MockWith { @() }
 
+                Mock Get-DirectoryPath -MockWith {
+                    "C:\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat"
+                }
+
                 mock Write-Warning
 
-                $result = Get-UserProfileLastUseTimeFromDat -ComputerName 'TestComputer'
+                $result = Get-UserProfileLastUseTimeFromDat
                 $result | Should -Not -BeNullOrEmpty
                 $result[0].Success | Should -Be $false
                 $result[0].Message | Should -Be 'No UsrClass.dat files found.'
@@ -126,6 +127,13 @@ Describe 'Get-UserProfileLastUseTimeFromDat Tests' -Tags "Private", "Unit", "Pro
     Context 'Verbose and Debug Logging Tests' {
         It 'Should log verbose messages when -Verbose is used' {
             InModuleScope -Scriptblock {
+
+                Mock Get-DirectoryPath -MockWith {
+                    "C:\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat"
+                }
+
+                mock Write-Warning
+
                 $VerbosePreference = 'Continue'
 
                 Mock Write-Verbose
@@ -146,6 +154,14 @@ Describe 'Get-UserProfileLastUseTimeFromDat Tests' -Tags "Private", "Unit", "Pro
     Context 'Performance Tests' {
         It 'Should complete within acceptable time' {
             InModuleScope -Scriptblock {
+
+                Mock Get-DirectoryPath -MockWith {
+                    "C:\Users\TestUser\AppData\Local\Microsoft\Windows\UsrClass.dat"
+                }
+
+                Mock Write-Warning
+
+
                 $elapsedTime = Measure-Command { Get-UserProfileLastUseTimeFromDat -ComputerName 'TestComputer' }
                 $elapsedTime.TotalMilliseconds | Should -BeLessThan 1000
             }
