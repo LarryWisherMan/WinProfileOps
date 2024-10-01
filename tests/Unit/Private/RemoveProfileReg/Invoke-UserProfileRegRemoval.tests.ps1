@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Invoke-UserProfileRegRemoval' -Tags 'Private', 'UserProfileReg' {
+Describe 'Invoke-UserProfileRegRemoval' -Tags 'Private', 'RemoveUserProfileReg' {
 
     BeforeEach {
         InModuleScope -ScriptBlock {

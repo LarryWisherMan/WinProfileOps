@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Resolve-UserProfileForDeletion' -Tags 'Private', 'UserProfileReg' {
+Describe 'Resolve-UserProfileForDeletion' -Tags 'Private', 'RemoveUserProfileReg' {
 
     BeforeEach {
         InModuleScope -ScriptBlock {
@@ -155,6 +155,30 @@ Describe 'Resolve-UserProfileForDeletion' -Tags 'Private', 'UserProfileReg' {
                 # Ensure that Write-Warning was called with the correct message
                 Assert-MockCalled Write-Warning -Exactly 1 -Scope It -ParameterFilter {
                     $Message -eq 'Profile not found for SID: S-1-5-21-1001 on Server01.'
+                }
+            }
+        }
+    }
+
+    # Test: Profile is found and is loaded
+    Context 'When the profile is found but is loaded' {
+        It 'Should return a ProfileDeletionResult indicating failure and log a warning' {
+            InModuleScope -ScriptBlock {
+                # Mock audit results with a valid UserProfile object
+                $mockAuditResults = @()
+                $mockAuditResults += New-UserProfileObject -SID 'S-1-5-21-1001' -ProfilePath 'C:\Users\Test1' -IsOrphaned $false -ComputerName 'Server01' -IsSpecial $false -IsLoaded $true
+
+                # Call the function with a valid SID
+                $result = Resolve-UserProfileForDeletion -SID 'S-1-5-21-1001' -AuditResults $mockAuditResults -ComputerName 'Server01'
+
+                # Validate that the ProfileDeletionResult indicates failure
+                $result.SID | Should -Be 'S-1-5-21-1001'
+                $result.DeletionSuccess | Should -Be $false
+                $result.DeletionMessage | Should -Be 'Profile is currently loaded and cannot be deleted'
+
+                # Ensure that Write-Warning was called with the correct message
+                Assert-MockCalled Write-Warning -Exactly 1 -Scope It -ParameterFilter {
+                    $Message -eq 'Profile is currently loaded and cannot be deleted: S-1-5-21-1001 on Server01.'
                 }
             }
         }

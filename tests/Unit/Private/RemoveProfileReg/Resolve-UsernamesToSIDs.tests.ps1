@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
+Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveUserProfileReg' {
 
     BeforeEach {
         InModuleScope -ScriptBlock {
@@ -32,6 +32,8 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
         It 'Should return an array of corresponding SIDs' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return valid SIDs
+
+
                 Mock Get-SIDFromUsername {
                     param($Username)
                     switch ($Username)

@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Backup-RegistryKeyForSID' -Tag 'Private', "RemoveProfileReg" {
+Describe 'Backup-RegistryKeyForSID' -Tag 'Private', "RemoveUserProfileReg" {
 
 
     BeforeEach {

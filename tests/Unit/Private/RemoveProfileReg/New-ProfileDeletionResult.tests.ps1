@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'New-ProfileDeletionResult' -Tags 'Private', 'UserProfile' {
+Describe 'New-ProfileDeletionResult' -Tags 'Private', 'UserProfile', 'RemoveUserProfileReg' {
 
     BeforeEach {
         # Setup any common prerequisites or mocks
