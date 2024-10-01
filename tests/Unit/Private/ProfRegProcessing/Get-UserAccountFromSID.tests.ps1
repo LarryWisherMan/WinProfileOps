@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Get-UserAccountFromSID Tests' -Tags "Public", "Unit", "ProfileRegProcessing", {
+Describe 'Get-UserAccountFromSID Tests' -Tags "Public", "Unit", "ProfileRegProcessing" {
 
     BeforeAll {
         InModuleScope -Scriptblock {

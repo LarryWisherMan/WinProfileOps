@@ -17,18 +17,17 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
+
 Describe 'Get-SIDFromUsername' -Tags "Private", "Helpers" {
 
     Context 'When the username exists and has a valid SID' {
-        It 'should return the correct SID' {
+        It 'should return the correct SID for local execution' {
 
             InModuleScope -ScriptBlock {
 
-                # Mock NTAccount and SecurityIdentifier
-                Mock -CommandName New-Object -MockWith {
-                    New-MockObject -Type 'System.Security.Principal.NTAccount' -Methods @{
-                        Translate = { New-MockObject -Type 'System.Security.Principal.SecurityIdentifier' -Properties @{ Value = 'S-1-5-21-1234567890-1234567890-1234567890-1001' } }
-                    }
+                # Mock Invoke-Command for local execution
+                Mock -CommandName Invoke-Command -MockWith {
+                    return 'S-1-5-21-1234567890-1234567890-1234567890-1001'
                 }
 
                 # Act: Call the function
@@ -36,6 +35,31 @@ Describe 'Get-SIDFromUsername' -Tags "Private", "Helpers" {
 
                 # Assert: Verify the result is the correct SID
                 $result | Should -Be 'S-1-5-21-1234567890-1234567890-1234567890-1001'
+
+                # Ensure Invoke-Command was called once
+                Assert-MockCalled Invoke-Command -Exactly 1
+            }
+        }
+
+        It 'should return the correct SID for remote execution' {
+
+            InModuleScope -ScriptBlock {
+
+                # Mock Invoke-Command for remote execution
+                Mock -CommandName Invoke-Command -MockWith {
+                    return 'S-1-5-21-1234567890-1234567890-1234567890-1001'
+                }
+
+                # Act: Call the function with a remote ComputerName
+                $result = Get-SIDFromUsername -Username 'JohnDoe' -ComputerName 'RemoteComputer'
+
+                # Assert: Verify the result is the correct SID
+                $result | Should -Be 'S-1-5-21-1234567890-1234567890-1234567890-1001'
+
+                # Ensure Invoke-Command was called once with remote ComputerName
+                Assert-MockCalled Invoke-Command -Exactly 1 -ParameterFilter {
+                    $ComputerName -eq 'RemoteComputer'
+                }
             }
         }
     }
@@ -45,9 +69,9 @@ Describe 'Get-SIDFromUsername' -Tags "Private", "Helpers" {
 
             InModuleScope -ScriptBlock {
 
-                # Mock NTAccount to throw an error (user not found)
-                Mock -CommandName New-Object -MockWith {
-                    throw [System.Security.Principal.IdentityNotMappedException]::new("User not found")
+                # Mock Invoke-Command to simulate user not found
+                Mock -CommandName Invoke-Command -MockWith {
+                    return $null
                 }
 
                 # Act: Call the function
@@ -56,49 +80,24 @@ Describe 'Get-SIDFromUsername' -Tags "Private", "Helpers" {
                 # Assert: The result should be null
                 $result | Should -BeNullOrEmpty
 
+                # Ensure Invoke-Command was called once
+                Assert-MockCalled Invoke-Command -Exactly 1
             }
         }
     }
 
-    Context 'When an error occurs while resolving the username' {
-        It 'should return null and display a warning with error information' {
-
-            InModuleScope -ScriptBlock {
-
-                # Mock NTAccount to throw a general exception
-                Mock -CommandName New-Object -MockWith {
-                    throw "An unexpected error occurred"
-                }
-
-                # Mock Write-Warning to capture the warning message
-                #Mock -CommandName Write-Warning
-
-                # Act: Call the function
-                $result = Get-SIDFromUsername -Username 'JohnDoe'
-
-                # Assert: The result should be null
-                $result | Should -BeNullOrEmpty
-
-                # Assert: Verify that the warning message was displayed
-                #Assert-MockCalled -CommandName Write-Warning -Exactly 1 -Scope It
-            }
-        }
-    }
-
-    Context 'When the SID is missing for a user' {
+    Context 'When an error occurs during SID resolution' {
         It 'should return null and display a warning' {
 
             InModuleScope -ScriptBlock {
 
-                # Mock NTAccount to return null for SID
-                Mock -CommandName New-Object -MockWith {
-                    New-MockObject -Type 'System.Security.Principal.NTAccount' -Methods @{
-                        Translate = { throw }
-                    }
+                # Mock Invoke-Command to simulate an error
+                Mock -CommandName Invoke-Command -MockWith {
+                    throw "An unexpected error occurred"
                 }
 
-                # Mock Write-Warning to capture the warning message
-                #Mock -CommandName Write-Warning
+                # Mock Write-Warning to capture the warning
+                Mock Write-Warning
 
                 # Act: Call the function
                 $result = Get-SIDFromUsername -Username 'JohnDoe'
@@ -106,8 +105,49 @@ Describe 'Get-SIDFromUsername' -Tags "Private", "Helpers" {
                 # Assert: The result should be null
                 $result | Should -BeNullOrEmpty
 
-                # Assert: Verify that the warning message was displayed
-                #Assert-MockCalled -CommandName Write-Warning -Exactly 1 -Scope It
+                # Ensure Write-Warning was called once
+                Assert-MockCalled Write-Warning -Exactly 1
+            }
+        }
+    }
+
+    Context 'When SID is missing for the user' {
+        It 'should return null and display a warning' {
+
+            InModuleScope -ScriptBlock {
+
+                # Mock Invoke-Command to simulate a user with no SID
+                Mock -CommandName Invoke-Command -MockWith {
+                    return $null
+                }
+
+                # Act: Call the function
+                $result = Get-SIDFromUsername -Username 'JohnDoe'
+
+                # Assert: The result should be null
+                $result | Should -BeNullOrEmpty
+
+                # Ensure Invoke-Command was called once
+                Assert-MockCalled Invoke-Command -Exactly 1
+            }
+        }
+    }
+
+    Context 'When executing for performance' {
+        It 'should complete within the acceptable time frame' {
+
+            InModuleScope -ScriptBlock {
+
+                # Mock Invoke-Command for local execution
+                Mock -CommandName Invoke-Command -MockWith {
+                    return 'S-1-5-21-1234567890-1234567890-1234567890-1001'
+                }
+
+                # Act: Measure the time taken for function execution
+                $elapsedTime = Measure-Command { Get-SIDFromUsername -Username 'JohnDoe' }
+
+                # Assert: Ensure execution time is less than 1000 milliseconds
+                $elapsedTime.TotalMilliseconds | Should -BeLessThan 1000
             }
         }
     }
