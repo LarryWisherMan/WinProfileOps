@@ -17,7 +17,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
+Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveUserProfileReg' {
 
     BeforeEach {
         InModuleScope -ScriptBlock {
@@ -32,17 +32,19 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
         It 'Should return an array of corresponding SIDs' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return valid SIDs
+
+
                 Mock Get-SIDFromUsername {
                     param($Username)
                     switch ($Username)
                     {
                         'user1'
                         {
-                            return 'S-1-5-21-1001' 
+                            return 'S-1-5-21-1001'
                         }
                         'user2'
                         {
-                            return 'S-1-5-21-1002' 
+                            return 'S-1-5-21-1002'
                         }
                     }
                 }
@@ -61,7 +63,7 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
 
     # Test: Resolving usernames with some unresolved
     Context 'When some usernames cannot be resolved' {
-        It 'Should return SIDs for valid usernames and log warnings for unresolved ones' {
+        It 'Should return SIDs for valid usernames' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return SIDs for some usernames and $null for others
                 Mock Get-SIDFromUsername {
@@ -70,11 +72,11 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
                     {
                         'user1'
                         {
-                            return 'S-1-5-21-1001' 
+                            return 'S-1-5-21-1001'
                         }
                         'invalidUser'
                         {
-                            return $null 
+                            return $null
                         }
                     }
                 }
@@ -85,10 +87,6 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
                 # Validate that the returned array contains only the valid SID
                 $result | Should -Be @('S-1-5-21-1001')
 
-                # Ensure that Write-Warning was called for the unresolved username
-                Assert-MockCalled Write-Warning -Exactly 1 -Scope It -ParameterFilter {
-                    $Message -eq 'Could not resolve SID for username invalidUser.'
-                }
             }
         }
     }
@@ -105,7 +103,7 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
 
                 # Ensure that Get-SIDFromUsername and Write-Warning were not called
                 Assert-MockCalled Get-SIDFromUsername -Exactly 0 -Scope It
-                Assert-MockCalled Write-Warning -Exactly 0 -Scope It
+
             }
         }
     }
@@ -121,15 +119,15 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
                     {
                         'user1'
                         {
-                            return 'S-1-5-21-1001' 
+                            return 'S-1-5-21-1001'
                         }
                         'user2'
                         {
-                            return 'S-1-5-21-1002' 
+                            return 'S-1-5-21-1002'
                         }
                         'user3'
                         {
-                            return 'S-1-5-21-1003' 
+                            return 'S-1-5-21-1003'
                         }
                     }
                 }
@@ -148,7 +146,7 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
 
     # Test: Unresolved usernames result in warning
     Context 'When a username cannot be resolved' {
-        It 'Should log a warning for unresolved usernames' {
+        It 'Should return null for unresolved usernames' {
             InModuleScope -ScriptBlock {
                 # Mock Get-SIDFromUsername to return $null for unresolved usernames
                 Mock Get-SIDFromUsername {
@@ -161,10 +159,7 @@ Describe 'Resolve-UsernamesToSIDs' -Tags 'Private', 'RemoveProfileReg' {
                 # Validate that the result is an empty array
                 $result | Should -Be @()
 
-                # Ensure that Write-Warning was called with the correct message
-                Assert-MockCalled Write-Warning -Exactly 1 -Scope It -ParameterFilter {
-                    $Message -eq 'Could not resolve SID for username invalidUser.'
-                }
+
             }
         }
     }

@@ -64,4 +64,4 @@ $MockUsers | ForEach-Object {
 $ProfileFolderPath = $env:WinProfileOps_ProfileFolderPath
 $userProfileAudit = Invoke-UserProfileAudit -ComputerName $ComputerName -ProfileFolderPath $ProfileFolderPath -IgnoreSpecial
 
-$out = Remove-UserProfilesFromRegistry -SIDs "S-1-5-21-1234567890-1", "S-1-5-21-1234567890-2" -Confirm:$false
+#$out = Remove-UserProfilesFromRegistry -SIDs "S-1-5-21-1234567890-1", "S-1-5-21-1234567890-2" -Confirm:$false

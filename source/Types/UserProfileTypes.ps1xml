@@ -1,0 +1,61 @@
+<Types>
+    <Type>
+        <Name>UserProfile</Name>
+
+        <!-- Adding a calculated property to check if the profile is inactive -->
+        <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultDisplayPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>SID</Name>
+                            <Name>UserName</Name>
+                            <Name>ProfilePath</Name>
+                            <Name>IsOrphaned</Name>
+                            <Name>OrphanReason</Name>
+                            <Name>ComputerName</Name>
+                            <Name>LastLogonDate</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
+            <ScriptProperty>
+                <Name>IsInactive</Name>
+                <GetScriptBlock>
+                    if ($this.LastLogonDate -eq [datetime]::MinValue) {
+                    $false
+                    } elseif ($this.LastLogonDate -lt (Get-Date).AddMonths(-6)) {
+                    $true
+                    } else {
+                    $false
+                    }
+                </GetScriptBlock>
+            </ScriptProperty>
+
+            <!-- Add a custom property that displays LastLogonDate as null if it's 1/1/0001 12:00:00
+            AM -->
+            <ScriptProperty>
+                <Name>FormattedLastLogonDate</Name>
+                <GetScriptBlock>
+                    if ($this.LastLogonDate -eq [datetime]::MinValue) {
+                    $null
+                    } else {
+                    $this.LastLogonDate
+                    }
+                </GetScriptBlock>
+            </ScriptProperty>
+
+            <!-- Add a method to the UserProfile class -->
+            <ScriptMethod>
+                <Name>GetProfileSummary</Name>
+                <Script>
+                    return "Profile for $($this.UserName): Last Logon
+                    $($this.FormattedLastLogonDate)"
+                </Script>
+            </ScriptMethod>
+
+        </Members>
+    </Type>
+</Types>

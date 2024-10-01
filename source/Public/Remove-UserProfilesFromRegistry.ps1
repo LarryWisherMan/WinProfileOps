@@ -65,13 +65,16 @@ function Remove-UserProfilesFromRegistry
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "UserProfileSet")]
+        [ValidateNotNullOrEmpty()]
         [UserProfile[]]$UserProfiles,
 
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "SIDSet")]
+        [ValidateNotNullOrEmpty()]
         [string[]]$SIDs,
 
 
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "UserNameSet")]
+        [ValidateNotNullOrEmpty()]
         [string[]]$Usernames,
 
         [string]$ComputerName = $env:COMPUTERNAME,
@@ -82,38 +85,52 @@ function Remove-UserProfilesFromRegistry
 
     Begin
     {
-        # Retrieve necessary environment variables
-        $RegistryPath = Test-EnvironmentVariable -Name 'WinProfileOps_RegistryPath'
-        $ProfileFolderPath = Test-EnvironmentVariable -Name 'WinProfileOps_ProfileFolderPath'
-        $RegistryHive = Test-EnvironmentVariable -Name 'WinProfileOps_RegistryHive'
-
-        # Resolve SIDs if Usernames are provided
-        if ($PSCmdlet.ParameterSetName -eq 'UserNameSet')
+        Try
         {
-            $SIDs = Resolve-UsernamesToSIDs -Usernames $Usernames
+            # Retrieve necessary environment variables
+            $RegistryPath = Test-EnvironmentVariable -Name 'WinProfileOps_RegistryPath'
+            $ProfileFolderPath = Test-EnvironmentVariable -Name 'WinProfileOps_ProfileFolderPath'
+            $RegistryHive = Test-EnvironmentVariable -Name 'WinProfileOps_RegistryHive'
 
-            # If no SIDs were resolved, return early
-            if (-not $SIDs)
+            # Resolve SIDs if Usernames are provided
+            if ($PSCmdlet.ParameterSetName -eq 'UserNameSet')
             {
-                Write-Error "No SIDs could be resolved for the provided usernames."
-                return
+                $SIDs = Resolve-UsernamesToSIDs -Usernames $Usernames
+
+                # If no SIDs were resolved, stop execution by throwing a terminating error
+                if (-not $SIDs)
+                {
+                    $errorRecord = New-Object System.Management.Automation.ErrorRecord (
+                        [System.Exception]::new("No SIDs could be resolved for the provided usernames."),
+                        "NoSIDsResolved",
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $null
+                    )
+                    $PSCmdlet.ThrowTerminatingError($errorRecord)
+                }
             }
-        }
 
-        # Group UserProfiles by computer name if using UserProfileSet
-        if ($PSCmdlet.ParameterSetName -eq 'UserProfileSet')
-        {
-            $profilesByComputer = $UserProfiles | Group-Object -Property ComputerName
-        }
+            # Group UserProfiles by computer name if using UserProfileSet
+            if ($PSCmdlet.ParameterSetName -eq 'UserProfileSet')
+            {
+                $profilesByComputer = $UserProfiles | Group-Object -Property ComputerName
+            }
 
-        # Handle confirmation: default behavior should be prompting unless explicitly set to false
-        $Confirm = if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Confirm'))
-        {
-            $PSCmdlet.MyInvocation.BoundParameters['Confirm']
+            # Handle confirmation: default behavior should be prompting unless explicitly set to false
+            $Confirm = if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Confirm'))
+            {
+                $PSCmdlet.MyInvocation.BoundParameters['Confirm']
+            }
+            else
+            {
+                $true # Default to true, always prompt unless explicitly overridden
+            }
+
         }
-        else
+        Catch
         {
-            $true # Default to true, always prompt unless explicitly overridden
+            Write-Error "Failed to initialize the function. Error: $_.Exception.Message"
+            return
         }
     }
     Process

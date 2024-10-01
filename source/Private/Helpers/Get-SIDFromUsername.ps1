@@ -45,13 +45,11 @@ function Get-SIDFromUsername
         }
         else
         {
-            Write-Warning "Could not find SID for username $Username."
             return $null
         }
     }
     catch
     {
-        Write-Warning "An error occurred while trying to resolve SID for username $Username . Error: $_"
         return $null
     }
 }

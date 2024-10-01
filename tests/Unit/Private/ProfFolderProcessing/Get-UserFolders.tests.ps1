@@ -32,7 +32,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Get-UserFolders' -Tags 'Unit' {
+Describe 'Get-UserFolders' -Tags "Private", "Unit", "ProfFolderProcessing" {
 
     # Test for local computer
     Context 'When running on the local computer' {

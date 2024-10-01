@@ -23,153 +23,174 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Get-UserProfilesFromFolders' -Tags 'Unit', 'Public' {
+Describe 'Get-UserProfilesFromFolders Tests' -Tags 'Public', "Unit", "UserProfileAudit", "GetUserProfile" {
 
-    # Test for profiles from the local computer
-    Context 'When retrieving profiles from the local computer' {
-        BeforeEach {
-            InModuleScope -ScriptBlock {
-                # Mock Get-UserFolders to return a list of user folders
-                Mock Get-UserFolders {
-                    return @(
-                        [PSCustomObject]@{ FolderName = 'User1'; ProfilePath = 'C:\Users\User1'; ComputerName = $env:COMPUTERNAME },
-                        [PSCustomObject]@{ FolderName = 'User2'; ProfilePath = 'C:\Users\User2'; ComputerName = $env:COMPUTERNAME }
-                    )
-                }
+    BeforeAll {
+        InModuleScope -ScriptBlock {
+            # Mock dependencies
+            Mock Test-ComputerPing -MockWith {
+                return $true
+            }
+            Mock Get-UserFolders -MockWith {
+                return @('User1', 'User2', 'User3')
+            }
+            Mock Get-ProcessedUserProfilesFromFolders -MockWith {
+                param($UserFolders, $ComputerName)
+                return @(
+                    [PSCustomObject]@{FolderName = 'User1'; ProfilePath = 'C:\Users\User1'; ComputerName = $ComputerName },
+                    [PSCustomObject]@{FolderName = 'User2'; ProfilePath = 'C:\Users\User2'; ComputerName = $ComputerName }
+                )
             }
         }
+    }
 
-        It 'Should return user profile folders from the local computer' {
-            $ComputerName = $env:COMPUTERNAME
+    Context 'Positive Tests' {
 
-            $result = Get-UserProfilesFromFolders -ComputerName $ComputerName
+        It 'Should return user profile folders for a valid computer and profile path' {
 
-            # Validate result
-            $result | Should -HaveCount 2
+            $result = Get-UserProfilesFromFolders -ComputerName 'Server01' -ProfileFolderPath 'D:\UserProfiles'
+
+            # Assert that result is not null or empty
+            $result | Should -Not -BeNullOrEmpty
+
+            # Assert expected properties exist in returned objects
             $result[0].FolderName | Should -Be 'User1'
             $result[0].ProfilePath | Should -Be 'C:\Users\User1'
-            $result[1].FolderName | Should -Be 'User2'
-            $result[1].ProfilePath | Should -Be 'C:\Users\User2'
+            $result[0].ComputerName | Should -Be 'Server01'
 
-            # Assert that Test-ComputerPing and Get-UserFolders were called
-            Assert-MockCalled Test-ComputerPing -Exactly 1
-            Assert-MockCalled Get-UserFolders -Exactly 1
+        }
+
+        It 'Should return user profile folders for the local computer by default' {
+
+            $result = Get-UserProfilesFromFolders
+
+            # Assert that result is not null or empty
+            $result | Should -Not -BeNullOrEmpty
+
+            # Assert that ComputerName is local machine's name
+            $result[0].ComputerName | Should -Be $env:COMPUTERNAME
+
         }
     }
 
-    # Test for profiles from a remote computer
-    Context 'When retrieving profiles from a remote computer' {
-        BeforeEach {
-            InModuleScope -ScriptBlock {
-                # Mock Get-UserFolders to return a list of user folders
-                Mock Get-UserFolders {
-                    return @(
-                        [PSCustomObject]@{ FolderName = 'User1'; ProfilePath = '\\RemotePC\Users\User1'; ComputerName = 'RemotePC' },
-                        [PSCustomObject]@{ FolderName = 'User2'; ProfilePath = '\\RemotePC\Users\User2'; ComputerName = 'RemotePC' }
-                    )
-                }
-            }
-        }
+    Context 'Negative Tests' {
 
-        It 'Should return user profile folders from the remote computer' {
-            $ComputerName = 'RemotePC'
+        It 'Should return empty array and write-warning if computer is offline' {
+            # Mock the ping check to return false (offline)
+            Mock Test-ComputerPing -MockWith { return $false } -ModuleName $Script:dscModuleName
 
-            $result = Get-UserProfilesFromFolders -ComputerName $ComputerName
+            mock Write-Warning
 
-            # Validate result
-            $result | Should -HaveCount 2
-            $result[0].FolderName | Should -Be 'User1'
-            $result[0].ProfilePath | Should -Be '\\RemotePC\Users\User1'
-            $result[1].FolderName | Should -Be 'User2'
-            $result[1].ProfilePath | Should -Be '\\RemotePC\Users\User2'
 
-            # Assert that Test-ComputerPing and Get-UserFolders were called
-            Assert-MockCalled Test-ComputerPing -Exactly 1
-            Assert-MockCalled Get-UserFolders -Exactly 1
-        }
-    }
+            $result = Get-UserProfilesFromFolders -ComputerName 'OfflineServer'
 
-    # Test when the computer is unreachable
-    Context 'When the computer is offline or unreachable' {
-        BeforeEach {
-            # Mock Test-ComputerPing to return false (computer is offline)
-            Mock Test-ComputerPing {
-                return $false
-            }
-
-            mock -ModuleName $script:dscModuleName Get-UserFolders
-
-            # Mock Write-Warning to capture the warning
-            Mock Write-Warning
-        }
-
-        It 'Should log a warning and return an empty result when the computer is offline' {
-            $ComputerName = 'RemotePC'
-
-            $result = Get-UserProfilesFromFolders -ComputerName $ComputerName
-
-            # The result should be empty
+            # Assert that result is empty
             $result | Should -BeNullOrEmpty
 
-            # Assert that Test-ComputerPing and Write-Warning were called
-            Assert-MockCalled Test-ComputerPing -Exactly 1
-            Assert-MockCalled Write-Warning -Exactly 1
-            Assert-MockCalled Get-UserFolders -Exactly 0  # Get-UserFolders should not be called
-        }
-    }
-
-    # Test when Get-UserFolders fails
-    Context 'When Get-UserFolders fails' {
-        BeforeEach {
-            InModuleScope -ScriptBlock {
-                # Mock Get-UserFolders to throw an error
-                Mock Get-UserFolders {
-                    throw "Failed to retrieve folders"
-                }
-            }
-
-            # Mock Write-Error to capture the error
-            Mock Write-Error
-        }
-
-        It 'Should log an error and return nothing when Get-UserFolders fails' {
-            $ComputerName = 'RemotePC'
-
-            $result = Get-UserProfilesFromFolders -ComputerName $ComputerName
-
-            # The result should be empty
-            $result | Should -BeNullOrEmpty
-
-            # Assert that Test-ComputerPing and Write-Error were called
-            Assert-MockCalled Test-ComputerPing -Exactly 1
-            Assert-MockCalled Write-Error -Exactly 1
-            Assert-MockCalled Get-UserFolders -Exactly 1
-        }
-    }
-
-    # Test when no user folders are found
-    Context 'When no user folders are found' {
-        BeforeEach {
-
-            InModuleScope -ScriptBlock {
-                # Mock Get-UserFolders to return an empty list
-                Mock Get-UserFolders {
-                    return @()
-                }
+            Assert-MockCalled -CommandName Write-Warning -Scope It -ParameterFilter {
+                $message -eq "Computer 'OfflineServer' is offline or unreachable."
             }
         }
 
-        It 'Should return an empty result when no user folders are found' {
-            $ComputerName = $env:COMPUTERNAME
+        It 'Should write error if ProfileFolderPath is invalid' {
 
-            $result = Get-UserProfilesFromFolders -ComputerName $ComputerName
+            # Mock Get-UserFolders to throw an exception
+            Mock Get-UserFolders -MockWith { throw "Cannot find path" } -ModuleName $Script:dscModuleName
+            #mock Write-Warning
 
-            # The result should be empty
+            mock write-error
+
+            Get-UserProfilesFromFolders -ProfileFolderPath 'InvalidFolderPath' | Out-Null
+
+
+            Assert-MockCalled -CommandName Write-Error -Scope It -ParameterFilter {
+                $message -like "*Cannot find path*"
+            }
+
+        }
+    }
+
+    Context 'Edge Case Tests' {
+
+        It 'Should handle empty folder results gracefully' {
+            # Mock Get-UserFolders to return an empty array
+            Mock Get-UserFolders -MockWith { return @() } -ModuleName $Script:dscModuleName
+
+
+            mock write-warning
+            $result = Get-UserProfilesFromFolders -ProfileFolderPath 'EmptyFolderPath'
+
+
+            # Assert that result is empty
             $result | Should -BeNullOrEmpty
 
-            # Assert that Test-ComputerPing and Get-UserFolders were called
-            Assert-MockCalled Test-ComputerPing -Exactly 1
-            Assert-MockCalled Get-UserFolders -Exactly 1
+            Assert-MockCalled -CommandName Write-Warning -Scope It -ParameterFilter {
+                $message -eq "No user profile folders found in 'EmptyFolderPath' on computer '$env:COMPUTERNAME'."
+            }
+
         }
+
+        It 'Should handle null input for ComputerName by using the local machine name' {
+            InModuleScope -ScriptBlock {
+                $result = Get-UserProfilesFromFolders -ComputerName $null
+
+                # Assert that the ComputerName defaults to the local machine
+                $result[0].ComputerName | Should -Be $env:COMPUTERNAME
+            }
+        }
+    }
+
+    Context 'Exception Handling' {
+
+        It 'Should return empty array if there is an error in retrieving user folders' {
+            # Mock Get-UserFolders to throw an exception
+            Mock Get-UserFolders -MockWith { throw "Error retrieving folders" } -ModuleName $Script:dscModuleName
+
+
+            mock write-error
+
+            $result = Get-UserProfilesFromFolders -ComputerName 'ErrorServer'
+
+            # Assert that result is empty
+            $result | Should -BeNullOrEmpty
+
+        }
+
+        It 'Should log an error message if retrieval fails' {
+            Mock Get-UserFolders -MockWith { throw "Error retrieving folders" } -ModuleName $Script:dscModuleName
+
+            mock write-error
+
+            Get-UserProfilesFromFolders -ComputerName 'ErrorServer' | Out-Null
+
+            Assert-MockCalled -Exactly 1 -CommandName 'Write-Error' -Scope It -ParameterFilter {
+                $message -like "*Error retrieving folders*"
+            }
+
+        }
+    }
+
+    Context 'Verbose and Debug Logging' {
+
+
+
+    }
+
+    Context 'Performance Tests' {
+
+        It 'Should execute within acceptable time for normal inputs' {
+
+            $executionTime = Measure-Command {
+                Get-UserProfilesFromFolders -ComputerName 'Server01'
+            }
+
+            # Assert that the execution time is less than 1 second
+            $executionTime.TotalMilliseconds | Should -BeLessThan 1000
+
+        }
+    }
+
+    Context 'Cleanup Tests' {
+
     }
 }
