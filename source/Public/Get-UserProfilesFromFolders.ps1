@@ -64,7 +64,7 @@ function Get-UserProfilesFromFolders
             return @()  # Return an empty array
         }
 
-        Get-ProcessedUserProfilesFromFolders -UserFolders $UserFolders -ComputerName $ComputerName
+        Get-ProcessedUserProfilesFromFolders -UserFolders $UserFolders -ComputerName $ComputerName 
 
     }
     catch

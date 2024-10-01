@@ -81,7 +81,7 @@ function Get-ProcessedUserProfilesFromFolders
         # Try to resolve SID
         try
         {
-            $SID = Resolve-UsernamesToSIDs -ComputerName -Usernames $userName -WarningAction SilentlyContinue
+            $SID = Resolve-UsernamesToSIDs -Usernames $userName -ComputerName $ComputerName
         }
         catch
         {
@@ -98,7 +98,7 @@ function Get-ProcessedUserProfilesFromFolders
             try
             {
                 $TestSpecialParams.Add('SID', $SID)
-                $accountInfo = Get-UserAccountFromSID -SID $SID -WarningAction SilentlyContinue
+                $accountInfo = Get-UserAccountFromSID -SID $SID -ComputerName $ComputerName -WarningAction SilentlyContinue
                 $domain = $accountInfo.Domain
                 $userName = $accountInfo.Username
             }

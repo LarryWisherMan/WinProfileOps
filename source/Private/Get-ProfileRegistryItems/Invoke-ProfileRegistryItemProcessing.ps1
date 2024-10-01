@@ -139,7 +139,7 @@ function Invoke-ProfileRegistryItemProcessing
         $ParameterHash.IsSpecial = $IsSpecialResults.IsSpecial
 
         # Translate SID to user account information
-        $accountInfo = Get-UserAccountFromSID -SID $Sid
+        $accountInfo = Get-UserAccountFromSID -SID $Sid -ComputerName $ComputerName -WarningAction SilentlyContinue
         $ParameterHash.Domain = $accountInfo.Domain
         $ParameterHash.UserName = $accountInfo.Username
 

@@ -89,6 +89,7 @@ function Get-UserProfileLastUseTimeFromDat
                 # Extract the user folder path (everything before 'AppData\Local\Microsoft\Windows')
                 $userPath = [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetDirectoryName([System.IO.Path]::GetDirectoryName([System.IO.Path]::GetDirectoryName([System.IO.Path]::GetDirectoryName($datFilePath)))))
 
+
                 # Extract the user name based on the user folder path
                 $userName = if ($isLocal)
                 {
@@ -106,7 +107,7 @@ function Get-UserProfileLastUseTimeFromDat
                     ComputerName = $ComputerName
                     Username     = $userName
                     LastLogon    = $lastLogon
-                    UserPath     = $userPath
+                    UserPath     = (Get-DirectoryPath -BasePath $userPath -IsLocal $true -ComputerName $ComputerName)
                 }
             }
         }

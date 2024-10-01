@@ -76,15 +76,8 @@ from the Windows registry based on SIDs, Usernames, or UserProfile objects.
   - If the user has administrator privileges, the function retrieves user
    profiles from the registry using `Get-SIDProfileInfo`.
   
-  - If the user lacks administrative privileges, the function falls back to the
-   `Get-SIDProfileInfoFallback` method, which retrieves user profiles using
-    CIM/WMI without requiring registry access.
-  
   - A warning is logged when the fallback method is used, indicating that special
    system accounts are excluded.
-
-- Refactored `Process-RegistryProfiles` to better account for access denied errors
- when testing profile paths with `Test-FolderExists`.
 
 - Updated `UserProfile` object creation in `Test-OrphanedProfile` for
  `$AccessError` scenarios.
@@ -95,6 +88,9 @@ from the Windows registry based on SIDs, Usernames, or UserProfile objects.
 - Refactored `Get-SIDFromUsername` to use `.NET` classes
  (`System.Security.Principal.NTAccount` and `System.Security.Principal.SecurityIdentifier`)
   instead of relying on `Get-CimInstance` for SID resolution.
+
+- `Get-UserAccountFromSID` and `Get-SIDFromUsername` now invoke locally / Remotely
+to resolve without null values
 
 ## [0.2.0] - 2024-09-12
 
